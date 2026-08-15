@@ -118,6 +118,11 @@ export function Hero() {
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      // Must be cleared, not just cancelled: kick() treats a non-null ref as
+      // "a frame is already scheduled". Leaving a dead id here means the loop
+      // can never start again after a remount — which React does on every
+      // mount in development.
+      rafRef.current = null;
     };
   }, []);
 
@@ -126,11 +131,10 @@ export function Hero() {
   // in a frame. It stops itself once everything has settled at rest, and any
   // pointer activity starts it again.
   const runFrame = useCallback((now: number) => {
+    // The reveal only exists on the centre slide and moves between slides as
+    // the carousel turns, so it can legitimately be absent for a frame. That
+    // must not stop the carousel, which is why this is not an early return.
     const el = revealRef.current;
-    if (!el) {
-      rafRef.current = null;
-      return;
-    }
     // Clamped so a background tab or a dropped frame cannot teleport values.
     const dt = Math.min(0.05, Math.max(0.001, (now - lastRef.current) / 1000));
     lastRef.current = now;
@@ -197,12 +201,14 @@ export function Hero() {
       m.pos = slideTargetRef.current;
     }
 
-    for (let i = 0; i < 4; i += 1) {
-      el.style.setProperty(`--p${i + 1}`, m.p[i].toFixed(4));
+    if (el) {
+      for (let i = 0; i < 4; i += 1) {
+        el.style.setProperty(`--p${i + 1}`, m.p[i].toFixed(4));
+      }
+      el.style.setProperty("--s", m.s.toFixed(4));
+      el.style.setProperty("--cv", m.cv.toFixed(4));
+      el.style.setProperty("--cx", m.cx.toFixed(2));
     }
-    el.style.setProperty("--s", m.s.toFixed(4));
-    el.style.setProperty("--cv", m.cv.toFixed(4));
-    el.style.setProperty("--cx", m.cx.toFixed(2));
 
     if (settled) {
       rafRef.current = null;
