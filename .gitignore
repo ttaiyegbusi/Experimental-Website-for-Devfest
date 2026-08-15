@@ -1,0 +1,19 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+node_modules
+.next
+dist
+*.local
+
+# Editor directories and files
+.vscode/*
+.idea
+.DS_Store
+*.sw?
+
+# See the sibling DevFest project: npm on macOS records linux-musl `sharp`
+# binaries with no version, which breaks `npm install` on Linux builders.
+package-lock.json

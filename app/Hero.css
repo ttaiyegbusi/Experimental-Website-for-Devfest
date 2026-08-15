@@ -1,0 +1,781 @@
+/* ============================================================================
+   DevFest Lagos — experimental hero.
+
+   Reconstructed against a 1440x1024 reference. Every number below that looks
+   arbitrary was measured off that raster, so the geometry lives in custom
+   properties at the top rather than being scattered through the rules.
+
+   Vertical rhythm at 1440x1024, for reference while tuning:
+     nav top 38 -> nav bottom 110 -> H1 ink top 172 -> grid top 326
+     -> montage top 368 -> montage/grid bottom 712 -> arrows 735..775
+     -> lede ink 784..850 -> prompt 893..953
+   ========================================================================== */
+
+.page {
+  --cream: #fffaeb;
+  --ink: #171717;
+  --accent: #f6b51e;
+  --grid-line: #e8e8e8;
+  --muted: #a3a3a3;
+
+  /* Horizontal reference widths. Each is capped at its reference value and
+     then allowed to shrink with the viewport, which is what keeps the
+     composition from stretching on wide monitors. */
+  --nav-w: min(1000px, calc(100vw - 40px));
+  --stage-w: min(800px, calc(100vw - 80px));
+  --lede-w: min(390px, calc(100vw - 48px));
+  --cta-w: min(346px, calc(100vw - 48px));
+
+  /* Stage internals, expressed against --stage-w so they scale together. */
+  --stage-scale: calc(var(--stage-w) / 800);
+  --grid-inset: calc(33 * var(--stage-scale));
+  --grid-cell: calc(43 * var(--stage-scale));
+
+  /* Vertical knobs. These are gaps between blocks in normal flow, not
+     absolute offsets — tuned so the *ink* lands on the reference rows. */
+  --nav-top: 38px;
+  --h1-gap: 52px;
+  --stage-gap: -8px;
+  --controls-gap: 23px;
+  --lede-gap: 4px;
+  --cta-gap: 42px;
+
+  min-height: 100vh;
+  padding-top: var(--nav-top);
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- navigation --------------------------------------------------------- */
+
+/* A contained, floating bar — not a full-bleed sticky header. Square corners,
+   no shadow, no border. */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: var(--nav-w);
+  height: 72px;
+  margin-inline: auto;
+  padding-inline: 21px 20px;
+  background: var(--ink);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  color: #fff;
+}
+
+.brand__logo {
+  display: block;
+  width: 143px;
+  height: 19px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.nav__list {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav__link {
+  display: inline-block;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1;
+  text-decoration: none;
+  transition: opacity 120ms ease;
+}
+
+.nav__link:hover {
+  opacity: 0.72;
+}
+
+.nav__ticket {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 99px;
+  height: 40px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1;
+  text-decoration: none;
+  transition: opacity 120ms ease;
+}
+
+.nav__ticket:hover {
+  opacity: 0.88;
+}
+
+.nav__link:focus-visible,
+.nav__ticket:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- headline ----------------------------------------------------------- */
+
+/* 82.6px is not a guess. Faculty Glyphic already has the reference's
+   proportions — the two lines came out within 0.4% of each other's scale
+   factor — so the only free variable was size. Rasterising both lines in the
+   browser across a range of sizes and least-squaring against the measured
+   611px / 851px of reference ink lands on 82.6px, off by -4px and +3px.
+   Tracking stays at 0: pulling letter-spacing in to fix one line pushes the
+   other out, because the error is opposite-signed. */
+.headline {
+  position: relative;
+  z-index: 2;
+  margin: var(--h1-gap) 0 0;
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-size: clamp(46px, 5.7361vw, 82.6px);
+  font-weight: 400;
+  line-height: 1.041162; /* 86px at 82.6px */
+  letter-spacing: 0;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* The rotating word sits in a slot whose width is set from a measurement of
+   the current word. Animating that width is what lets "One" and the comma
+   glide to their new positions instead of jumping, while the word itself
+   cross-fades. At rest the slot is exactly the width of "Ecosystem", so the
+   resting line still matches the reference to the pixel. */
+.headline__accent {
+  display: inline-block;
+  color: var(--accent);
+  white-space: nowrap;
+  transition: width 380ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.headline__word {
+  display: inline-block;
+  opacity: 1;
+  transition: opacity 260ms ease;
+}
+
+.headline__word.is-out {
+  opacity: 0;
+}
+
+/* Hidden probe used to measure each candidate word in the real face and size
+   before it is shown. Absolutely positioned so it never affects layout. */
+.headline__measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- visual stage ------------------------------------------------------- */
+
+/* Grid, montage and the heading's descenders share this box. The grid is
+   inset from the left only, so its right edge meets the montage's while its
+   left edge sits 33px inside — that asymmetry is in the reference. */
+.stage {
+  position: relative;
+  z-index: 1;
+  width: var(--stage-w);
+  aspect-ratio: 800 / 386;
+  margin: var(--stage-gap) auto 0;
+}
+
+.stage__grid {
+  position: absolute;
+  inset: 0 0 0 var(--grid-inset);
+  background-color: #fff;
+  background-image: linear-gradient(
+      to right,
+      var(--grid-line) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: var(--grid-cell) var(--grid-cell);
+}
+
+/* ---- hover reveal ------------------------------------------------------- */
+
+/* The motion here is not a set of CSS transitions. Every animated value is a
+   *follower* that chases a target every frame, written by the rAF loop in
+   Hero.tsx as a plain scalar:
+
+       current += (target - current) * (1 - e^(-lambda * dt))
+
+   There is no duration and no start or end — only a target that can change at
+   any moment. That is the whole difference in feel: a CSS transition that is
+   interrupted restarts from the current value with zero velocity, which is
+   what reads as a snap, whereas a follower simply gets a new target and keeps
+   the motion it already had. Sequencing comes from each value having its own
+   lambda rather than from hand-set delays, which is also why the card's old
+   210ms delay and the `left`-transition workaround are both gone.
+
+   This file only interpolates. --p1..--p4 are the per-speaker reveal
+   progresses, --s the image scale, --cv the card's presence and --cx its
+   offset in px.
+
+   One rectangle per speaker, not one across the group: --rN* is that
+   speaker's visible bounding box, --iN* the same box collapsed to 8% about its
+   own centre, so the selection grows out of the person it belongs to. Both are
+   generated by scripts/compose-montage.py — regenerate rather than hand-edit. */
+.reveal {
+  --r1t: 3.5%;
+  --i1t: 47.9%;
+  --r1r: 66.9%;
+  --i1r: 82.1%;
+  --r1b: 0%;
+  --i1b: 44.4%;
+  --r1l: 0%;
+  --i1l: 15.2%;
+  --r2t: 0%;
+  --i2t: 46%;
+  --r2r: 49%;
+  --i2r: 61.1%;
+  --r2b: 0%;
+  --i2b: 46%;
+  --r2l: 24.8%;
+  --i2l: 36.8%;
+  --r3t: 1.2%;
+  --i3t: 46.6%;
+  --r3r: 26.1%;
+  --i3r: 41.4%;
+  --r3b: 0%;
+  --i3b: 45.5%;
+  --r3l: 40.8%;
+  --i3l: 56%;
+  --r4t: 0%;
+  --i4t: 46%;
+  --r4r: 0%;
+  --i4r: 16.7%;
+  --r4b: 0%;
+  --i4b: 46%;
+  --r4l: 63.7%;
+  --i4l: 80.4%;
+
+  --p1: 0;
+  --p2: 0;
+  --p3: 0;
+  --p4: 0;
+  --s: 0;
+  --cv: 0;
+  --cx: 0;
+
+  /* Blended geometry, shared by each layer's clip-path and its frame's inset
+     so the coral rectangle and the colour edge cannot drift apart. */
+  --g1:
+    calc(var(--i1t) + (var(--r1t) - var(--i1t)) * var(--p1))
+    calc(var(--i1r) + (var(--r1r) - var(--i1r)) * var(--p1))
+    calc(var(--i1b) + (var(--r1b) - var(--i1b)) * var(--p1))
+    calc(var(--i1l) + (var(--r1l) - var(--i1l)) * var(--p1));
+  --g2:
+    calc(var(--i2t) + (var(--r2t) - var(--i2t)) * var(--p2))
+    calc(var(--i2r) + (var(--r2r) - var(--i2r)) * var(--p2))
+    calc(var(--i2b) + (var(--r2b) - var(--i2b)) * var(--p2))
+    calc(var(--i2l) + (var(--r2l) - var(--i2l)) * var(--p2));
+  --g3:
+    calc(var(--i3t) + (var(--r3t) - var(--i3t)) * var(--p3))
+    calc(var(--i3r) + (var(--r3r) - var(--i3r)) * var(--p3))
+    calc(var(--i3b) + (var(--r3b) - var(--i3b)) * var(--p3))
+    calc(var(--i3l) + (var(--r3l) - var(--i3l)) * var(--p3));
+  --g4:
+    calc(var(--i4t) + (var(--r4t) - var(--i4t)) * var(--p4))
+    calc(var(--i4r) + (var(--r4r) - var(--i4r)) * var(--p4))
+    calc(var(--i4b) + (var(--r4b) - var(--i4b)) * var(--p4))
+    calc(var(--i4l) + (var(--r4l) - var(--i4l)) * var(--p4));
+
+  position: absolute;
+  inset: auto 0 0 0;
+  aspect-ratio: 800 / 344;
+}
+
+/* Everything that grows with the photograph lives in here: the image layers
+   and the selection frames. Keeping the frames inside the scaled box is what
+   locks them to the clipped colour edge. The card is deliberately outside,
+   because it is UI rather than part of the picture. */
+.reveal__media {
+  position: absolute;
+  inset: 0;
+  transform: scale(calc(1 + 0.045 * var(--s)));
+  transform-origin: 50% 55%;
+  will-change: transform;
+}
+
+.reveal__img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  z-index: 1;
+}
+
+/* Each colour layer is a full-size picture in the same box as the base — never
+   resized to fit its rectangle. The rectangle is a hole punched in it, which
+   is what keeps the layers registered to the pixel while the window grows. */
+.reveal__layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  z-index: 2;
+  will-change: clip-path;
+}
+
+.reveal__layer--1 {
+  clip-path: inset(var(--g1));
+}
+.reveal__layer--2 {
+  clip-path: inset(var(--g2));
+}
+.reveal__layer--3 {
+  clip-path: inset(var(--g3));
+}
+.reveal__layer--4 {
+  clip-path: inset(var(--g4));
+}
+
+.reveal__frame {
+  position: absolute;
+  z-index: 3;
+  border: 1px solid #f36b4d;
+  border-radius: 0;
+  pointer-events: none;
+  will-change: inset, opacity;
+}
+
+.reveal__frame--1 {
+  inset: var(--g1);
+  opacity: var(--p1);
+}
+.reveal__frame--2 {
+  inset: var(--g2);
+  opacity: var(--p2);
+}
+.reveal__frame--3 {
+  inset: var(--g3);
+  opacity: var(--p3);
+}
+.reveal__frame--4 {
+  inset: var(--g4);
+  opacity: var(--p4);
+}
+
+.reveal__handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border: 2px solid #f36b4d;
+  transform: translate(-50%, -50%);
+}
+
+.reveal__handle--tl {
+  top: 0;
+  left: 0;
+}
+.reveal__handle--tr {
+  top: 0;
+  left: 100%;
+}
+.reveal__handle--bl {
+  top: 100%;
+  left: 0;
+}
+.reveal__handle--br {
+  top: 100%;
+  left: 100%;
+}
+
+/* ---- floating action card ----------------------------------------------- */
+
+/* Low enough to sit over the lower body — the faces are in the top third and
+   must stay clear. --cx is a px offset from the montage centre, damped on its
+   own lambda, so the card trails the pointer between speakers instead of
+   arriving with it. */
+.reveal__card {
+  position: absolute;
+  top: 78%;
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: 330px;
+  height: 62px;
+  padding-inline: 18px 8px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  text-decoration: none;
+  opacity: var(--cv);
+  transform: translate(
+      calc(-50% + var(--cx) * 1px),
+      calc(-50% + (1 - var(--cv)) * 12px)
+    )
+    scale(calc(0.96 + 0.04 * var(--cv)));
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.reveal[data-active] .reveal__card {
+  pointer-events: auto;
+}
+
+.reveal__cardtext {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.reveal__cardbtn {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--ink);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal__cardbtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.reveal__card:hover .reveal__cardbtn {
+  transform: translateX(2px);
+}
+
+.reveal__card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Without a hover-capable pointer there is no way to ask for the reveal, so
+   the photograph is simply shown in colour and the tool chrome is dropped.
+   The four layers tile the composition exactly, so opening all of them
+   reconstructs the whole montage. */
+@media (hover: none), (pointer: coarse) {
+  .reveal__media {
+    transform: none;
+  }
+
+  .reveal__layer {
+    clip-path: none;
+  }
+
+  .reveal__frame,
+  .reveal__card {
+    display: none;
+  }
+}
+
+/* ---- slider controls ---------------------------------------------------- */
+
+.controls {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  width: var(--stage-w);
+  margin: var(--controls-gap) auto 0;
+}
+
+.controls__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+}
+
+.controls__btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.controls__btn:hover {
+  opacity: 0.88;
+}
+
+.controls__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- supporting copy ---------------------------------------------------- */
+
+.lede {
+  width: var(--lede-w);
+  margin: var(--lede-gap) auto 0;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+/* ---- prompt field ------------------------------------------------------- */
+
+/* Reads as a dark search/prompt field rather than a conventional button.
+   Focus is drawn inset so the outer 346x60 never changes. */
+.prompt {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: var(--cta-w);
+  height: 60px;
+  margin: var(--cta-gap) auto 0;
+  padding-inline: 21px;
+  background: var(--ink);
+}
+
+.prompt__icon {
+  display: flex;
+  flex: none;
+  color: #fff;
+}
+
+.prompt__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.prompt__field {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+}
+
+.prompt__input {
+  width: 100%;
+  border: none;
+  background: none;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* The animated question. Sits over the input, never intercepts the pointer,
+   and is replaced by the real value as soon as anything is typed. */
+.prompt__ghost {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.prompt__caret {
+  display: inline-block;
+  width: 1px;
+  height: 1.05em;
+  margin-left: 2px;
+  background: currentColor;
+  animation: prompt-caret 1s steps(1, end) infinite;
+}
+
+@keyframes prompt-caret {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.prompt__input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.prompt__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.prompt__input:focus {
+  outline: none;
+}
+
+.prompt:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Off-document host for the SVG filter. */
+.filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* ---- responsive --------------------------------------------------------- */
+
+/* The composition never becomes a different design: same order, same centre
+   axis, montage stays one picture. Only the scale and the gaps move. */
+
+@media (max-width: 1100px) {
+  .page {
+    --h1-gap: 44px;
+    --stage-gap: -6px;
+    --controls-gap: 20px;
+    --cta-gap: 34px;
+  }
+}
+
+@media (max-width: 900px) {
+  .page {
+    --nav-w: calc(100vw - 32px);
+    --stage-w: min(800px, calc(100vw - 48px));
+  }
+
+  .header {
+    padding-inline: 16px;
+  }
+
+  .nav {
+    gap: 16px;
+  }
+
+  .nav__list {
+    gap: 16px;
+  }
+}
+
+/* Below this the four link labels stop fitting beside the ticket button, so
+   they fold away and the ticket action keeps its place in the bar. */
+@media (max-width: 760px) {
+  .page {
+    --nav-w: calc(100vw - 24px);
+    --stage-w: calc(100vw - 24px);
+    --h1-gap: 32px;
+    --stage-gap: -4px;
+    --controls-gap: 16px;
+    --lede-gap: 18px;
+    --cta-gap: 26px;
+  }
+
+  .header {
+    height: 64px;
+    padding-inline: 14px;
+  }
+
+  .nav__list {
+    display: none;
+  }
+
+  /* The desktop two-line set cannot survive here, and forcing it would mean
+     shrinking the display face past the point of being readable. Three lines
+     is the intended fallback; "Ecosystem" stays whole and stays yellow. */
+  .headline {
+    padding-inline: 16px;
+    font-size: clamp(34px, 11.6vw, 60px);
+    line-height: 0.98;
+  }
+
+  .lede {
+    font-size: 17px;
+  }
+
+  .controls__btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* The rectangles themselves are percentages of the montage, so they track the
+   speakers at every width without restating them. Only the card needs to give
+   ground as the stage narrows. */
+@media (max-width: 1100px) {
+  .reveal__card {
+    width: 300px;
+  }
+}
+
+/* Both headline and prompt animations are suppressed for reduced motion in the
+   component itself — the headline holds "Ecosystem" and the prompt holds "Ask
+   me anything...", which is also the reference's resting state. The reveal
+   keeps working, because it is the only way to see the colour photograph, but
+   it drops the scale and the travel and becomes a short fade. */
+@media (prefers-reduced-motion: reduce) {
+  .nav__link,
+  .nav__ticket,
+  .headline__accent,
+  .headline__word {
+    transition: none;
+  }
+
+  .prompt__caret {
+    animation: none;
+  }
+
+  /* The reveal keeps working — it is the only way to see the colour
+     photograph — but the follower loop snaps to its target instead of chasing
+     it (Hero.tsx raises lambda), so nothing travels. The scale is dropped
+     here, since growth is decoration rather than information. */
+  .reveal__media {
+    transform: none;
+  }
+
+  .reveal__card {
+    transform: translate(calc(-50% + var(--cx) * 1px), -50%);
+  }
+}

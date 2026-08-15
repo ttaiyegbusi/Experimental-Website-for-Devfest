@@ -1,0 +1,14 @@
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  /* The cream runs to the edges of the viewport, not just behind the hero. */
+  background: #fffaeb;
+}
