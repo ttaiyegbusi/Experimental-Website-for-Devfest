@@ -56,6 +56,19 @@ const SLIDES = [
   },
 ];
 
+// The carousel needs a slide either side of the centre to fill the peeks, so
+// with only one montage the same picture is rendered in three slots. Adding
+// real slides to SLIDES is then a data change and nothing else: once there are
+// three or more, each slot holds a different line-up.
+const VIRTUAL = SLIDES.length * Math.ceil(3 / SLIDES.length);
+const SLOTS = Array.from({ length: VIRTUAL }, (_, i) => i);
+
+// Distance between neighbouring slide centres, as a fraction of the slide
+// width. Measured off the mock: half the centre slide (450) + the 87px gutter
+// + half of a 50%-scale neighbour (225) = 762, over a 900px slide.
+const STEP_RATIO = 762 / 900;
+const PEEK_SCALE = 0.5;
+
 const SPEAKERS = [1, 2, 3, 4] as const;
 
 // Boundaries between the four pointer bands, as a percentage of the montage
@@ -76,7 +89,7 @@ const CARD_DX = [-224, -97, 58, 224];
 // rate, and that is where the sequencing comes from — the reveal is quick, the
 // scale is slower and heavier, the card is slowest so it visibly joins last.
 // No delays, no durations.
-const LAMBDA = { reveal: 13, scale: 8, card: 5.5, cardX: 12 };
+const LAMBDA = { reveal: 13, scale: 8, card: 5.5, cardX: 12, carousel: 9 };
 
 // Frame-rate-independent exponential decay toward a target. This is the whole
 // trick: it has no notion of a start, an end, or a duration, so changing the
@@ -93,11 +106,17 @@ export function Hero() {
     setIndex((i) => (i + delta + SLIDES.length) % SLIDES.length);
 
   const revealRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const slideTargetRef = useRef(0); // integer, unbounded — modulo handles wrap
+  const dragRef = useRef<{ id: number; x: number; pos: number; moved: boolean } | null>(
+    null
+  );
   const targetRef = useRef(0); // 0 = nothing selected
   const rafRef = useRef<number | null>(null);
   const lastRef = useRef(0);
   const reducedRef = useRef(false);
-  const motionRef = useRef({ p: [0, 0, 0, 0], s: 0, cv: 0, cx: 0 });
+  const motionRef = useRef({ p: [0, 0, 0, 0], s: 0, cv: 0, cx: 0, pos: 0 });
 
   useEffect(() => {
     reducedRef.current =
@@ -141,6 +160,27 @@ export function Hero() {
     m.cv = damp(m.cv, cvTarget, LAMBDA.card * boost, dt);
     m.cx = m.cv < 0.02 ? cxTarget : damp(m.cx, cxTarget, LAMBDA.cardX * boost, dt);
 
+    // --- carousel ---------------------------------------------------------
+    // While a finger or pointer is down the position is the drag, not a
+    // follower; it only starts chasing again on release.
+    if (!dragRef.current) {
+      m.pos = damp(m.pos, slideTargetRef.current, LAMBDA.carousel * boost, dt);
+    }
+    const track = carouselRef.current;
+    const stepPx = (track?.offsetWidth ?? 900) * STEP_RATIO;
+    for (let j = 0; j < VIRTUAL; j += 1) {
+      const node = slideRefs.current[j];
+      if (!node) continue;
+      // Shortest signed distance from the current position, so slides wrap
+      // around the ends instead of running off in one direction.
+      let d = (((j - m.pos) % VIRTUAL) + VIRTUAL) % VIRTUAL;
+      if (d > VIRTUAL / 2) d -= VIRTUAL;
+      const grow = Math.max(0, 1 - Math.abs(d));
+      const sc = PEEK_SCALE + (1 - PEEK_SCALE) * grow;
+      node.style.transform = `translate3d(${(d * stepPx).toFixed(2)}px,0,0) scale(${sc.toFixed(4)})`;
+      node.style.zIndex = String(50 + Math.round(grow * 50));
+    }
+
     // Exponential decay only ever approaches its target, so without this the
     // loop would keep running for the whole time a speaker is hovered, doing
     // arithmetic nobody can see. Once everything is within a rounding error,
@@ -148,15 +188,18 @@ export function Hero() {
     // starts it again.
     const eps = 0.0015;
     const settled =
+      !dragRef.current &&
       m.p.every((v, i) => Math.abs(v - pTarget[i]) < eps) &&
       Math.abs(m.s - sTarget) < eps &&
       Math.abs(m.cv - cvTarget) < eps &&
-      Math.abs(m.cx - cxTarget) < 0.05;
+      Math.abs(m.cx - cxTarget) < 0.05 &&
+      Math.abs(m.pos - slideTargetRef.current) < 0.0005;
     if (settled) {
       m.p = [...pTarget];
       m.s = sTarget;
       m.cv = cvTarget;
       m.cx = cxTarget;
+      m.pos = slideTargetRef.current;
     }
 
     for (let i = 0; i < 4; i += 1) {
@@ -187,6 +230,71 @@ export function Hero() {
     },
     [kick]
   );
+
+  // --- carousel controls ---------------------------------------------------
+
+  const [slideIndex, setSlideIndex] = useState(0);
+  const centreSlot = ((slideIndex % VIRTUAL) + VIRTUAL) % VIRTUAL;
+
+  const go = useCallback(
+    (delta: number) => {
+      slideTargetRef.current += delta;
+      setSlideIndex(slideTargetRef.current);
+      select(0); // the reveal belongs to whichever slide is centre
+      kick();
+    },
+    [kick, select]
+  );
+
+  const onCarouselKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      go(-1);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      go(1);
+    }
+  };
+
+  // Drag is the same position value, written directly instead of damped. On
+  // release it becomes a target again, with a flick if the throw was quick
+  // enough, and the follower carries whatever motion the drag had.
+  const onDragStart = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    dragRef.current = {
+      id: e.pointerId,
+      x: e.clientX,
+      pos: motionRef.current.pos,
+      moved: false,
+    };
+    e.currentTarget.setPointerCapture(e.pointerId);
+    kick();
+  };
+
+  const onDragMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = dragRef.current;
+    if (!d || d.id !== e.pointerId) return;
+    const track = carouselRef.current;
+    const stepPx = (track?.offsetWidth ?? 900) * STEP_RATIO;
+    const dx = e.clientX - d.x;
+    if (Math.abs(dx) > 3) d.moved = true;
+    motionRef.current.pos = d.pos - dx / stepPx;
+    kick();
+  };
+
+  const onDragEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = dragRef.current;
+    if (!d || d.id !== e.pointerId) return;
+    dragRef.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    if (!d.moved) return;
+    slideTargetRef.current = Math.round(motionRef.current.pos);
+    setSlideIndex(slideTargetRef.current);
+    select(0);
+    kick();
+  };
 
   // Which speaker the pointer is over. React state changes only when a band
   // boundary is crossed, and only to drive `data-active` for pointer-events;
