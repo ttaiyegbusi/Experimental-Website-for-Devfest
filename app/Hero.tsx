@@ -241,6 +241,17 @@ export function Hero() {
     [kick, select]
   );
 
+  // The loop stops itself once settled, which means nothing would place the
+  // slides on first paint and nothing would reposition them when the viewport
+  // changes the step width. One frame is enough in both cases — it writes the
+  // transforms and settles again immediately.
+  useEffect(() => {
+    kick();
+    const onResize = () => kick();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [kick]);
+
   const onCarouselKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowLeft") {
       e.preventDefault();
