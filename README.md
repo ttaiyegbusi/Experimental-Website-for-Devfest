@@ -49,6 +49,42 @@ the montage region, and that figure still counts the heading's descenders,
 which overlap the region but are drawn by the browser rather than by the
 compositor.
 
+## The carousel
+
+Measured off the updated mock at 1440×1024: the centre slide is **900×450** at
+x 270, with neighbours at **50%** scale and 183px of each visible at the
+viewport edges. The arrows are 40×40, centred on y 512, sitting in the gutters
+between the centre slide and its neighbours — anchored to the carousel, never
+to a slide, so they do not move or scale with the travel.
+
+Everything below the stage is unchanged: nav, paragraph and prompt are still on
+their original marks and the document is still exactly 1024 tall.
+
+Each slide carries its own grid and montage. Only the centre one carries the
+hover-reveal machinery, because only the slide you are looking at can be
+interrogated; the peeks are plain greyscale montages.
+
+**Adding slides is a data change.** `SLIDES` in `Hero.tsx` currently holds one
+montage, and `VIRTUAL` renders it in three slots so the peeks are filled — the
+same picture either side. Add real entries and each slot picks up its own
+line-up with no other change.
+
+Motion runs on the same follower loop as the reveal: `pos` chases the target
+slide index at λ 9, and each slide's offset and scale are derived from its
+signed distance to `pos`, wrapped so it is always the short way round. Drag
+writes `pos` directly instead of damping it, then hands back to the follower on
+release, so a throw carries its momentum instead of snapping.
+
+Two bugs worth remembering, both found here:
+
+- The rAF cleanup cancelled the pending frame but left the id in the ref.
+  `kick()` reads a non-null ref as "already scheduled", so after React's
+  development double-mount the loop could never start again. Cancel *and*
+  clear.
+- The loop stops when settled, so nothing repositioned the slides on first
+  paint or after a resize. One frame fixes both — hence the mount effect and
+  the resize listener.
+
 ## The hover reveal
 
 Hovering the montage runs a Vizcom-style reveal: the picture grows slightly, a
