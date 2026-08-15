@@ -98,12 +98,7 @@ const damp = (current: number, target: number, lambda: number, dt: number) =>
   current + (target - current) * (1 - Math.exp(-lambda * dt));
 
 export function Hero() {
-  const [index, setIndex] = useState(0);
   const [active, setActive] = useState<number | null>(null);
-  const slide = SLIDES[index];
-
-  const step = (delta: number) =>
-    setIndex((i) => (i + delta + SLIDES.length) % SLIDES.length);
 
   const revealRef = useRef<HTMLDivElement>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -485,119 +480,158 @@ export function Hero() {
             stage. The grid is inset 33px from the left so its right edge lines
             up with the montage while its left edge does not — that asymmetry
             is in the reference and is deliberate. */}
-        <div className="stage">
-          <div className="stage__grid" aria-hidden="true" />
-
-          {/* The reveal is driven entirely by :hover / :focus-within in CSS —
-              no React state. That is what makes an interrupted pointer
-              reverse from wherever the transition currently is, instead of
-              restarting from either end. Both image layers stay mounted and
-              the colour one is hidden by clipping, never by unmounting, so
-              there is no decode flash on first hover. */}
+        {/* The carousel. Each slide carries its own grid and montage; the
+            centre one additionally carries the whole hover-reveal machinery,
+            because only the slide you are looking at can be interrogated. */}
+        <div className="stageband">
           <div
-            className="reveal"
-            ref={revealRef}
-            data-active={active ?? undefined}
-            onPointerMove={onPointerMove}
-            onPointerLeave={() => select(0)}
+            className="carousel"
+            ref={carouselRef}
+            role="group"
+            aria-roledescription="carousel"
+            aria-label="DevFest Lagos speakers"
+            tabIndex={0}
+            onKeyDown={onCarouselKeyDown}
+            onPointerDown={onDragStart}
+            onPointerMove={onDragMove}
+            onPointerUp={onDragEnd}
+            onPointerCancel={onDragEnd}
           >
-            <div className="reveal__media">
-              <img
-                className="reveal__img"
-                src={slide.base}
-                alt={slide.alt}
-                width={800}
-                height={344}
-                draggable={false}
-              />
-
-              {/* One colour layer per speaker, each holding only that
-                  speaker's *visible* pixels. A single shared colour montage
-                  would not work: a rectangle drawn around one speaker overlaps
-                  their neighbours, and clipping the whole montage to it would
-                  light those neighbours up too. */}
-              {SPEAKERS.map((n) => (
-                <img
-                  key={n}
-                  className={`reveal__layer reveal__layer--${n}`}
-                  src={`/hero/montage-reveal-${n}.png`}
-                  alt=""
-                  aria-hidden="true"
-                  width={800}
-                  height={344}
-                  draggable={false}
-                />
-              ))}
-
-              {SPEAKERS.map((n) => (
+            {SLOTS.map((slot) => {
+              const s = SLIDES[slot % SLIDES.length];
+              const isCentre = slot === centreSlot;
+              return (
                 <div
-                  key={n}
-                  className={`reveal__frame reveal__frame--${n}`}
-                  aria-hidden="true"
+                  className="slide"
+                  key={slot}
+                  ref={(el) => {
+                    slideRefs.current[slot] = el;
+                  }}
+                  aria-hidden={!isCentre}
                 >
-                  <span className="reveal__handle reveal__handle--tl" />
-                  <span className="reveal__handle reveal__handle--tr" />
-                  <span className="reveal__handle reveal__handle--bl" />
-                  <span className="reveal__handle reveal__handle--br" />
+                  <div className="slide__grid" aria-hidden="true" />
+                  {isCentre ? (
+                      <div
+                        className="reveal"
+                        ref={revealRef}
+                        data-active={active ?? undefined}
+                        onPointerMove={onPointerMove}
+                        onPointerLeave={() => select(0)}
+                      >
+                        <div className="reveal__media">
+                          <img
+                            className="reveal__img"
+                            src={s.base}
+                            alt={s.alt}
+                            width={800}
+                            height={344}
+                            draggable={false}
+                          />
+
+                          {/* One colour layer per speaker, each holding only that
+                              speaker's *visible* pixels. A single shared colour montage
+                              would not work: a rectangle drawn around one speaker overlaps
+                              their neighbours, and clipping the whole montage to it would
+                              light those neighbours up too. */}
+                          {SPEAKERS.map((n) => (
+                            <img
+                              key={n}
+                              className={`reveal__layer reveal__layer--${n}`}
+                              src={`/hero/montage-reveal-${n}.png`}
+                              alt=""
+                              aria-hidden="true"
+                              width={800}
+                              height={344}
+                              draggable={false}
+                            />
+                          ))}
+
+                          {SPEAKERS.map((n) => (
+                            <div
+                              key={n}
+                              className={`reveal__frame reveal__frame--${n}`}
+                              aria-hidden="true"
+                            >
+                              <span className="reveal__handle reveal__handle--tl" />
+                              <span className="reveal__handle reveal__handle--tr" />
+                              <span className="reveal__handle reveal__handle--bl" />
+                              <span className="reveal__handle reveal__handle--br" />
+                            </div>
+                          ))}
+                        </div>
+
+                        <a
+                          className="reveal__card"
+                          href="#explore"
+                          onFocus={() => select(targetRef.current || KEYBOARD_DEFAULT)}
+                          onBlur={() => select(0)}
+                        >
+                          <span className="reveal__cardtext">Explore DevFest Lagos</span>
+                          <span className="reveal__cardbtn" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none">
+                              <path
+                                d="M5 12h13m-5-6 6 6-6 6"
+                                stroke="currentColor"
+                                strokeWidth="1.6"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </span>
+                        </a>
+                      </div>
+                  ) : (
+                    <div className="reveal reveal--static">
+                      <div className="reveal__media">
+                        <img
+                          className="reveal__img"
+                          src={s.base}
+                          alt=""
+                          aria-hidden="true"
+                          width={900}
+                          height={388}
+                          draggable={false}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+              );
+            })}
 
-            <a
-              className="reveal__card"
-              href="#explore"
-              onFocus={() => select(targetRef.current || KEYBOARD_DEFAULT)}
-              onBlur={() => select(0)}
+            <button
+              type="button"
+              className="carousel__btn carousel__btn--prev"
+              onClick={() => go(-1)}
+              aria-label="Previous speakers"
             >
-              <span className="reveal__cardtext">Explore DevFest Lagos</span>
-              <span className="reveal__cardbtn" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M5 12h13m-5-6 6 6-6 6"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
-            </a>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M14 6 8 12l6 6"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="carousel__btn carousel__btn--next"
+              onClick={() => go(1)}
+              aria-label="Next speakers"
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="m10 6 6 6-6 6"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
           </div>
-        </div>
-
-        <div className="controls">
-          <button
-            type="button"
-            className="controls__btn"
-            onClick={() => step(-1)}
-            aria-label="Previous speakers"
-          >
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M14 6 8 12l6 6"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className="controls__btn"
-            onClick={() => step(1)}
-            aria-label="Next speakers"
-          >
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="m10 6 6 6-6 6"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
         </div>
 
         <p className="lede">

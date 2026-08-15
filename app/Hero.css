@@ -22,22 +22,24 @@
      then allowed to shrink with the viewport, which is what keeps the
      composition from stretching on wide monitors. */
   --nav-w: min(1000px, calc(100vw - 40px));
-  --stage-w: min(800px, calc(100vw - 80px));
+  /* The centre slide. 900 at the 1440 reference; the peeks and the arrows are
+     all derived from it, so this is the only width to change. */
+  --slide-w: min(900px, calc(100vw - 120px));
+  --slide-h: calc(var(--slide-w) * 450 / 900);
+  --stage-w: var(--slide-w);
   --lede-w: min(390px, calc(100vw - 48px));
   --cta-w: min(346px, calc(100vw - 48px));
 
   /* Stage internals, expressed against --stage-w so they scale together. */
-  --stage-scale: calc(var(--stage-w) / 800);
-  --grid-inset: calc(33 * var(--stage-scale));
-  --grid-cell: calc(43 * var(--stage-scale));
+  /* Grid pitch measured at 48px on the 900px slide. */
+  --grid-cell: calc(var(--slide-w) / 900 * 48);
 
   /* Vertical knobs. These are gaps between blocks in normal flow, not
      absolute offsets — tuned so the *ink* lands on the reference rows. */
   --nav-top: 38px;
   --h1-gap: 52px;
-  --stage-gap: -8px;
-  --controls-gap: 23px;
-  --lede-gap: 4px;
+  --stage-gap: -47px;
+  --lede-gap: 43px;
   --cta-gap: 42px;
 
   min-height: 100vh;
@@ -197,22 +199,48 @@
   border: 0;
 }
 
-/* ---- visual stage ------------------------------------------------------- */
+/* ---- carousel ----------------------------------------------------------- */
 
-/* Grid, montage and the heading's descenders share this box. The grid is
-   inset from the left only, so its right edge meets the montage's while its
-   left edge sits 33px inside — that asymmetry is in the reference. */
-.stage {
+/* Full-bleed band so the neighbouring slides can run off both edges of the
+   viewport. `clip` rather than `hidden` on purpose: it trims horizontally
+   without creating a scroll container, and leaves the vertical axis visible so
+   the montage can still grow past the top of the stage on hover. */
+.stageband {
   position: relative;
-  z-index: 1;
-  width: var(--stage-w);
-  aspect-ratio: 800 / 386;
-  margin: var(--stage-gap) auto 0;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-top: var(--stage-gap);
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
-.stage__grid {
+.carousel {
+  position: relative;
+  z-index: 1;
+  width: var(--slide-w);
+  height: var(--slide-h);
+  margin-inline: auto;
+  touch-action: pan-y; /* horizontal drags belong to the carousel */
+}
+
+.carousel:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 12px;
+}
+
+/* Each slide is the full 900x450 box: the grid fills it and the montage is
+   bottom-aligned inside it. Position and scale are written every frame by the
+   follower loop in Hero.tsx — nothing here transitions. */
+.slide {
   position: absolute;
-  inset: 0 0 0 var(--grid-inset);
+  inset: 0;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.slide__grid {
+  position: absolute;
+  inset: 0;
   background-color: #fff;
   background-image: linear-gradient(
       to right,
@@ -221,6 +249,49 @@
     ),
     linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: var(--grid-cell) var(--grid-cell);
+}
+
+/* The arrows sit in the gutters between the centre slide and its neighbours,
+   anchored to the carousel rather than to any slide, so they never move or
+   scale with the travel. */
+.carousel__btn {
+  position: absolute;
+  top: 50%;
+  z-index: 200;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--ink);
+  color: #fff;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.carousel__btn--prev {
+  left: -58px;
+}
+
+.carousel__btn--next {
+  right: -58px;
+}
+
+.carousel__btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.carousel__btn:hover {
+  opacity: 0.88;
+}
+
+.carousel__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ---- hover reveal ------------------------------------------------------- */
@@ -314,7 +385,7 @@
 
   position: absolute;
   inset: auto 0 0 0;
-  aspect-ratio: 800 / 344;
+  aspect-ratio: 900 / 388;
 }
 
 /* Everything that grows with the photograph lives in here: the image layers
@@ -508,45 +579,6 @@
   }
 }
 
-/* ---- slider controls ---------------------------------------------------- */
-
-.controls {
-  position: relative;
-  z-index: 4;
-  display: flex;
-  justify-content: space-between;
-  width: var(--stage-w);
-  margin: var(--controls-gap) auto 0;
-}
-
-.controls__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  background: var(--ink);
-  color: #fff;
-  cursor: pointer;
-}
-
-.controls__btn svg {
-  width: 14px;
-  height: 14px;
-}
-
-.controls__btn:hover {
-  opacity: 0.88;
-}
-
-.controls__btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 /* ---- supporting copy ---------------------------------------------------- */
 
 .lede {
@@ -735,7 +767,7 @@
     font-size: 17px;
   }
 
-  .controls__btn {
+  .carousel__btn {
     width: 36px;
     height: 36px;
   }
