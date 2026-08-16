@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DevFestLogo } from "./DevFestLogo";
+import { PaperCurtain } from "./PaperCurtain";
 import "./Hero.css";
 
 // The rotating half of the headline. "Ecosystem" leads because that is the
@@ -89,7 +90,12 @@ const CARD_DX = [-224, -97, 58, 224];
 // rate, and that is where the sequencing comes from — the reveal is quick, the
 // scale is slower and heavier, the card is slowest so it visibly joins last.
 // No delays, no durations.
-const LAMBDA = { reveal: 13, scale: 8, card: 5.5, cardX: 12, carousel: 9 };
+const LAMBDA = { reveal: 13, scale: 8, card: 5.5, cardX: 12, carousel: 15 };
+
+// Autoplay interval. One second is what was asked for; at this speed the
+// carousel must settle well inside the interval or it never comes to rest,
+// which is why LAMBDA.carousel is 15 (99% in ~0.31s) rather than 9.
+const AUTOPLAY_MS = 1000;
 
 // Frame-rate-independent exponential decay toward a target. This is the whole
 // trick: it has no notion of a start, an end, or a duration, so changing the
@@ -107,6 +113,7 @@ export function Hero() {
   const dragRef = useRef<{ id: number; x: number; pos: number; moved: boolean } | null>(
     null
   );
+  const curtainDoneRef = useRef(false);
   const targetRef = useRef(0); // 0 = nothing selected
   const rafRef = useRef<number | null>(null);
   const lastRef = useRef(0);
@@ -258,6 +265,25 @@ export function Hero() {
     return () => window.removeEventListener("resize", onResize);
   }, [kick]);
 
+  // Autoplay. At a one-second interval the pause rules are not a nicety — the
+  // hover reveal would be unusable without them, because the slide would move
+  // before you had finished looking at a speaker. It also waits for the
+  // curtain, so the entrance and the carousel never run at each other.
+  useEffect(() => {
+    if (reducedRef.current) return;
+    const id = window.setInterval(() => {
+      const el = carouselRef.current;
+      if (!curtainDoneRef.current || dragRef.current || document.hidden) return;
+      // Asked of the browser rather than tracked through React events.
+      // pointerenter/leave are synthesised from pointerover/pointerout, and a
+      // single missed leave would strand the flag and stop autoplay for good.
+      // :hover and :focus-within cannot get stuck.
+      if (el?.matches(":hover") || el?.matches(":focus-within")) return;
+      go(1);
+    }, AUTOPLAY_MS);
+    return () => window.clearInterval(id);
+  }, [go]);
+
   const onCarouselKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowLeft") {
       e.preventDefault();
@@ -273,13 +299,25 @@ export function Hero() {
   // enough, and the follower carries whatever motion the drag had.
   const onDragStart = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
+    // Never start a drag from a control. The arrows and the card live inside
+    // the carousel, so their pointerdown bubbles here — and taking pointer
+    // capture would retarget the pointerup to the carousel, which makes the
+    // browser fire `click` on the carousel instead of the button. The arrows
+    // simply stopped working.
+    if ((e.target as HTMLElement).closest("button, a, input")) return;
     dragRef.current = {
       id: e.pointerId,
       x: e.clientX,
       pos: motionRef.current.pos,
       moved: false,
     };
-    e.currentTarget.setPointerCapture(e.pointerId);
+    // Can throw if the pointer is already gone; the drag still works without
+    // capture, it just stops tracking outside the element.
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* no capture available */
+    }
     kick();
   };
 
@@ -441,6 +479,11 @@ export function Hero() {
 
   return (
     <main className="page">
+      <PaperCurtain
+        onDone={() => {
+          curtainDoneRef.current = true;
+        }}
+      />
       <header className="header">
         <a className="brand" href="#top" aria-label="DevFest Lagos, home">
           <DevFestLogo className="brand__logo" />

@@ -24,7 +24,9 @@
   --nav-w: min(1000px, calc(100vw - 40px));
   /* The centre slide. 900 at the 1440 reference; the peeks and the arrows are
      all derived from it, so this is the only width to change. */
-  --slide-w: min(900px, calc(100vw - 120px));
+  /* The 240px reserve keeps the arrow gutters on screen as the viewport
+     narrows; at 1440 the slide is capped at 900 long before it bites. */
+  --slide-w: min(900px, calc(100vw - 240px));
   --slide-h: calc(var(--slide-w) * 450 / 900);
   --stage-w: var(--slide-w);
   --lede-w: min(390px, calc(100vw - 48px));

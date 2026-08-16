@@ -49,6 +49,62 @@ the montage region, and that figure still counts the heading's descenders,
 which overlap the region but are drawn by the browser rather than by the
 compositor.
 
+## The paper-cut opening
+
+Two cream sheets part along a torn edge, in `app/PaperCurtain.tsx`. It runs on
+the same follower model as everything else — no durations.
+
+The sequence is **score, then tear**: a yellow seam appears first and the
+sheets hold for 120ms before parting. That beat is most of what separates
+"paper being cut" from "two doors opening".
+
+Details that matter if you change it:
+
+- **One curve, used twice.** The left half keeps what falls to its left of the
+  tear and the right half keeps what falls to its right — the *same* path. Two
+  mirrored paths would not interlock and would leave gaps along the cut.
+- **The tear tiles, it does not stretch.** A single path scaled to viewport
+  height would smear the roughness on a tall window and bunch it on a short
+  one. Tiling keeps the tear the same physical coarseness at every size.
+- **Thickness is a fixed mask offset, not a time lag.** Damping the back ply
+  more slowly seemed right and was wrong: the sheets travel a whole viewport
+  width, so a small difference in damping put ~90px between the two edges and
+  read as two separate sheets. Each layer is now masked a few pixels further
+  toward the cut than the one above it — 3px of yellow along the tear, then a
+  darker band beyond it.
+- **Grain is a tiling background, never a live filter.** A `feTurbulence`
+  filter on a full-viewport element that is also transforming would take the
+  animation off the GPU.
+- **Cream sheets mean no flash.** The curtain is server-rendered and only
+  decided on the client, so on repeat visits there is a frame of sheet before
+  it is dismissed — invisible, because the sheet is the page's own colour.
+- Plays **once per session**, skipped under `prefers-reduced-motion`, and the
+  hero renders underneath it, so a JS failure leaves a usable page rather than
+  a blank sheet.
+
+The seen-flag is written when the animation *finishes*, not when it starts.
+Writing it up front looks equivalent and is not: React mounts twice in
+development, so the first mount would set it, its cleanup would cancel the
+animation, and the second mount would skip — the curtain would never run.
+
+## Autoplay
+
+The carousel advances every **1000ms** (`AUTOPLAY_MS`), starting only once the
+curtain has finished so the two never run at each other.
+
+At that interval `LAMBDA.carousel` is 15 rather than 9 — 99% settled in ~0.31s
+— otherwise the slide never comes to rest between ticks and one second reads as
+continuous drift rather than a carousel.
+
+Pausing is asked of the browser (`:hover`, `:focus-within`) rather than tracked
+through React events. `pointerenter`/`pointerleave` are synthesised from
+`pointerover`/`pointerout`, and one missed leave would strand the flag and stop
+autoplay permanently. It also pauses while dragging and while the tab is hidden.
+
+With one montage this loops the same four people every second, which looks like
+a stuck slideshow. The interval is one constant — change it when real slides
+land.
+
 ## The carousel
 
 Measured off the updated mock at 1440×1024: the centre slide is **900×450** at
