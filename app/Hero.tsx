@@ -90,12 +90,14 @@ const CARD_DX = [-224, -97, 58, 224];
 // rate, and that is where the sequencing comes from — the reveal is quick, the
 // scale is slower and heavier, the card is slowest so it visibly joins last.
 // No delays, no durations.
-const LAMBDA = { reveal: 13, scale: 8, card: 5.5, cardX: 12, carousel: 15 };
+const LAMBDA = { reveal: 13, scale: 8, card: 5.5, cardX: 12, carousel: 10 };
 
-// Autoplay interval. One second is what was asked for; at this speed the
-// carousel must settle well inside the interval or it never comes to rest,
-// which is why LAMBDA.carousel is 15 (99% in ~0.31s) rather than 9.
-const AUTOPLAY_MS = 1000;
+// Autoplay interval. Two numbers set the pace and both matter: this decides
+// how often a slide changes, and LAMBDA.carousel decides how quickly each
+// change travels (10 = 99% settled in ~0.46s). Together they leave roughly
+// 2.5s of stillness between moves — at the original 1000ms the carousel was
+// never actually at rest, which is what read as too fast.
+const AUTOPLAY_MS = 3000;
 
 // Frame-rate-independent exponential decay toward a target. This is the whole
 // trick: it has no notion of a start, an end, or a duration, so changing the

@@ -89,21 +89,23 @@ animation, and the second mount would skip — the curtain would never run.
 
 ## Autoplay
 
-The carousel advances every **1000ms** (`AUTOPLAY_MS`), starting only once the
+The carousel advances every **3000ms** (`AUTOPLAY_MS`), starting only once the
 curtain has finished so the two never run at each other.
 
-At that interval `LAMBDA.carousel` is 15 rather than 9 — 99% settled in ~0.31s
-— otherwise the slide never comes to rest between ticks and one second reads as
-continuous drift rather than a carousel.
+Two numbers set the pace, and both matter. `AUTOPLAY_MS` is how often a slide
+changes; `LAMBDA.carousel` (10, so 99% settled in ~0.46s) is how fast each
+change travels. Together they leave roughly 2.5s of stillness between moves.
+An earlier pass ran at 1000ms with λ 15 and read as too fast — not because any
+single move was quick, but because the carousel was never actually at rest.
 
 Pausing is asked of the browser (`:hover`, `:focus-within`) rather than tracked
 through React events. `pointerenter`/`pointerleave` are synthesised from
 `pointerover`/`pointerout`, and one missed leave would strand the flag and stop
 autoplay permanently. It also pauses while dragging and while the tab is hidden.
 
-With one montage this loops the same four people every second, which looks like
-a stuck slideshow. The interval is one constant — change it when real slides
-land.
+With one montage this loops the same four people every few seconds, which looks
+like a stuck slideshow. The interval is one constant — change it when real
+slides land.
 
 ## The carousel
 
@@ -126,7 +128,7 @@ same picture either side. Add real entries and each slot picks up its own
 line-up with no other change.
 
 Motion runs on the same follower loop as the reveal: `pos` chases the target
-slide index at λ 9, and each slide's offset and scale are derived from its
+slide index at λ 10, and each slide's offset and scale are derived from its
 signed distance to `pos`, wrapped so it is always the short way round. Drag
 writes `pos` directly instead of damping it, then hands back to the follower on
 release, so a throw carries its momentum instead of snapping.
