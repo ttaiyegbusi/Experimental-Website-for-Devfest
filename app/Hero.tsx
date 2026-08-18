@@ -95,9 +95,9 @@ const LAMBDA = { reveal: 13, scale: 8, card: 5.5, cardX: 12, carousel: 10 };
 // Autoplay interval. Two numbers set the pace and both matter: this decides
 // how often a slide changes, and LAMBDA.carousel decides how quickly each
 // change travels (10 = 99% settled in ~0.46s). Together they leave roughly
-// 2.5s of stillness between moves — at the original 1000ms the carousel was
+// 1.5s of stillness between moves — at the original 1000ms the carousel was
 // never actually at rest, which is what read as too fast.
-const AUTOPLAY_MS = 3000;
+const AUTOPLAY_MS = 2000;
 
 // Frame-rate-independent exponential decay toward a target. This is the whole
 // trick: it has no notion of a start, an end, or a duration, so changing the

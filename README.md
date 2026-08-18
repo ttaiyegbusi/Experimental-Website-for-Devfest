@@ -89,12 +89,12 @@ animation, and the second mount would skip — the curtain would never run.
 
 ## Autoplay
 
-The carousel advances every **3000ms** (`AUTOPLAY_MS`), starting only once the
+The carousel advances every **2000ms** (`AUTOPLAY_MS`), starting only once the
 curtain has finished so the two never run at each other.
 
 Two numbers set the pace, and both matter. `AUTOPLAY_MS` is how often a slide
 changes; `LAMBDA.carousel` (10, so 99% settled in ~0.46s) is how fast each
-change travels. Together they leave roughly 2.5s of stillness between moves.
+change travels. Together they leave roughly 1.5s of stillness between moves.
 An earlier pass ran at 1000ms with λ 15 and read as too fast — not because any
 single move was quick, but because the carousel was never actually at rest.
 
