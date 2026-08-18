@@ -5,19 +5,29 @@ import "./PaperCurtain.css";
 
 const SEEN_KEY = "devfest:curtain-seen";
 
+// Play on every load rather than once per session. A refresh keeps
+// sessionStorage, so the once-per-session version only ever ran on the very
+// first visit — which makes the animation impossible to iterate on. Set this
+// back to true when the timing is settled and it should stop greeting people
+// on every navigation.
+const ONCE_PER_SESSION = false;
+
 // The score-then-tear beat. The seam appears first and the sheets hold still
 // for this long before parting — it is most of what separates "paper being
-// cut" from "two doors opening". Lengthened along with the parting so the
-// pause stays in proportion to the travel rather than becoming a hiccup.
-const SCORE_MS = 170;
+// cut" from "two doors opening". Kept in proportion to the travel — a short
+// pause in front of a slow tear reads as a hiccup rather than a beat.
+const SCORE_MS = 350;
 
 // Same motion language as the rest of the hero: followers chasing a target,
 // no durations. Thickness comes from a fixed mask offset in the CSS, not from
 // damping the two plies differently.
-// part 5 = 99% open in ~0.92s; with the score hold the whole opening is a
-// little over a second. The seam is eased off 20 too, so the scored line does
-// not snap in ahead of a now-slower tear.
-const LAMBDA = { seam: 16, part: 5 };
+//
+// The sheets are considered clear at q > 0.995, which is -ln(0.005)/lambda
+// seconds, not the 4.6/lambda that 99% would give — so part 2.0 lands the
+// travel at ~2.65s and, with the hold, a three-second opening. The seam is
+// eased right off to match: at the old 16 the scored line appeared instantly
+// in front of a very slow tear, which drew the eye to the wrong thing.
+const LAMBDA = { seam: 6, part: 2.0 };
 
 const damp = (current: number, target: number, lambda: number, dt: number) =>
   current + (target - current) * (1 - Math.exp(-lambda * dt));
@@ -40,10 +50,12 @@ export function PaperCurtain({ onDone }: { onDone?: () => void }) {
     // so the first mount would set the flag, its cleanup would cancel the
     // animation, and the second mount would read the flag and skip — the
     // curtain would never run.
-    try {
-      sessionStorage.setItem(SEEN_KEY, "1");
-    } catch {
-      /* storage blocked */
+    if (ONCE_PER_SESSION) {
+      try {
+        sessionStorage.setItem(SEEN_KEY, "1");
+      } catch {
+        /* storage blocked */
+      }
     }
     onDoneRef.current?.();
   }, []);
@@ -94,10 +106,12 @@ export function PaperCurtain({ onDone }: { onDone?: () => void }) {
     const reduced =
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     let seen = false;
-    try {
-      seen = sessionStorage.getItem(SEEN_KEY) === "1";
-    } catch {
-      /* storage blocked; treat as unseen */
+    if (ONCE_PER_SESSION) {
+      try {
+        seen = sessionStorage.getItem(SEEN_KEY) === "1";
+      } catch {
+        /* storage blocked; treat as unseen */
+      }
     }
 
     if (reduced || seen) {

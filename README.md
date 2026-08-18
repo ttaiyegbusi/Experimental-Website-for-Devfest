@@ -55,14 +55,33 @@ Two cream sheets part along a torn edge, in `app/PaperCurtain.tsx`. It runs on
 the same follower model as everything else — no durations.
 
 The sequence is **score, then tear**: a yellow seam appears first and the
-sheets hold for 120ms before parting. That beat is most of what separates
-"paper being cut" from "two doors opening".
+sheets hold for `SCORE_MS` (350ms) before parting. That beat is most of what
+separates "paper being cut" from "two doors opening".
+
+Pace is set by `LAMBDA.part` (2.0) plus that hold — **~3s end to end**. Note
+the sheets are dismissed at `q > 0.995`, so the travel is `-ln(0.005)/lambda`
+seconds rather than the `4.6/lambda` that 99% would suggest; using the wrong
+one leaves the opening about 10% longer than intended. The hold and the travel
+should move together — a short hold on a slow tear reads as a hiccup rather
+than a beat.
+
+`ONCE_PER_SESSION` is currently **false**, so it plays on every load. Set it
+back to true when the timing is settled; with it on, a refresh keeps
+sessionStorage and the curtain only ever runs on the first visit.
 
 Details that matter if you change it:
 
 - **One curve, used twice.** The left half keeps what falls to its left of the
   tear and the right half keeps what falls to its right — the *same* path. Two
   mirrored paths would not interlock and would leave gaps along the cut.
+- **The tear tile sits at plain `50%`, not `50% - half-a-tile`.** A percentage
+  `mask-position` resolves as `(container - image) x percentage`, so 50%
+  already lands a 40px tile's left edge on `50% - 20px`. Subtracting the half
+  tile again pushed it a further 20px left and left a 20px column that neither
+  sheet covered: the page showed through the *closed* curtain in a slit down
+  the middle, which flashed at the start of every play. `mask-size`
+  percentages carry no such adjustment, which is why only the positions were
+  wrong.
 - **The tear tiles, it does not stretch.** A single path scaled to viewport
   height would smear the roughness on a tall window and bunch it on a short
   one. Tiling keeps the tear the same physical coarseness at every size.
@@ -78,9 +97,8 @@ Details that matter if you change it:
 - **Cream sheets mean no flash.** The curtain is server-rendered and only
   decided on the client, so on repeat visits there is a frame of sheet before
   it is dismissed — invisible, because the sheet is the page's own colour.
-- Plays **once per session**, skipped under `prefers-reduced-motion`, and the
-  hero renders underneath it, so a JS failure leaves a usable page rather than
-  a blank sheet.
+- Skipped under `prefers-reduced-motion`, and the hero renders underneath it,
+  so a JS failure leaves a usable page rather than a blank sheet.
 
 The seen-flag is written when the animation *finishes*, not when it starts.
 Writing it up front looks equivalent and is not: React mounts twice in

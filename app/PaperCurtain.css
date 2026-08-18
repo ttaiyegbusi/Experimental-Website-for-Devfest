@@ -84,19 +84,25 @@
 
 /* Solid from the outside edge up to the tear, then the repeating tear tile.
    --shift pushes an element's own edge past its neighbours': the seam uses it
-   so a few pixels of yellow survive beyond the cream. */
+   so a few pixels of yellow survive beyond the cream.
+
+   The tile is positioned at plain 50%, NOT at 50% - half-a-tile. A percentage
+   mask-position resolves as (container - image) x percentage, so 50% already
+   lands a 40px tile's left edge on 50% - 20px. Subtracting the half-tile again
+   pushed it a further 20px left, which left a 20px column that neither sheet
+   covered — the page showed through the closed curtain in a slit down the
+   middle, and that slit was the glitch on every play. mask-size percentages
+   have no such adjustment, which is why only the positions changed here. */
 .curtain__side--left > * {
   -webkit-mask-image: linear-gradient(#000, #000), var(--tear-left);
   -webkit-mask-repeat: no-repeat, repeat-y;
   -webkit-mask-size: calc(50% - var(--tear-half) + var(--shift, 0px)) 100%,
     40px 80px;
-  -webkit-mask-position: left top,
-    calc(50% - var(--tear-half) + var(--shift, 0px)) top;
+  -webkit-mask-position: left top, calc(50% + var(--shift, 0px)) top;
   mask-image: linear-gradient(#000, #000), var(--tear-left);
   mask-repeat: no-repeat, repeat-y;
   mask-size: calc(50% - var(--tear-half) + var(--shift, 0px)) 100%, 40px 80px;
-  mask-position: left top,
-    calc(50% - var(--tear-half) + var(--shift, 0px)) top;
+  mask-position: left top, calc(50% + var(--shift, 0px)) top;
   mask-composite: add;
 }
 
@@ -104,13 +110,12 @@
   -webkit-mask-image: var(--tear-right), linear-gradient(#000, #000);
   -webkit-mask-repeat: repeat-y, no-repeat;
   -webkit-mask-size: 40px 80px,
-    calc(50% - var(--tear-half) - var(--shift, 0px)) 100%;
-  -webkit-mask-position: calc(50% - var(--tear-half) - var(--shift, 0px)) top,
-    right top;
+    calc(50% - var(--tear-half) + var(--shift, 0px)) 100%;
+  -webkit-mask-position: calc(50% - var(--shift, 0px)) top, right top;
   mask-image: var(--tear-right), linear-gradient(#000, #000);
   mask-repeat: repeat-y, no-repeat;
-  mask-size: 40px 80px, calc(50% - var(--tear-half) - var(--shift, 0px)) 100%;
-  mask-position: calc(50% - var(--tear-half) - var(--shift, 0px)) top, right top;
+  mask-size: 40px 80px, calc(50% - var(--tear-half) + var(--shift, 0px)) 100%;
+  mask-position: calc(50% - var(--shift, 0px)) top, right top;
   mask-composite: add;
 }
 
