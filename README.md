@@ -49,66 +49,78 @@ the montage region, and that figure still counts the heading's descenders,
 which overlap the region but are drawn by the browser rather than by the
 compositor.
 
-## The paper-cut opening
+## The opening: paper lift
 
-Two cream sheets part along a torn edge, in `app/PaperCurtain.tsx`. It runs on
-the same follower model as everything else — no durations.
+One sheet covering the page peels away downward, torn edge leading, tilting
+slightly as it goes so a corner leaves first. `app/PaperLift.tsx`, on the same
+follower model as everything else — no durations.
 
-The sequence is **score, then tear**: a yellow seam appears first and the
-sheets hold for `SCORE_MS` (350ms) before parting. That beat is most of what
-separates "paper being cut" from "two doors opening".
+It travels **down**, not up, so the page is revealed top-first: nav and
+headline arrive at the start of the animation rather than the end. That is both
+reading order and the better answer for perceived load, since the headline is
+the largest element on the page.
 
-Pace is set by `LAMBDA.part` (2.0) plus that hold — **~3s end to end**. Note
-the sheets are dismissed at `q > 0.995`, so the travel is `-ln(0.005)/lambda`
-seconds rather than the `4.6/lambda` that 99% would suggest; using the wrong
-one leaves the opening about 10% longer than intended. The hold and the travel
-should move together — a short hold on a slow tear reads as a hiccup rather
-than a beat.
+The beat is a **nudge, then peel**: the sheet shifts 50px, which brings the
+torn edge and its yellow line just into frame, and only then goes. `--nudge`
+has to be large enough to actually expose the edge — the sheet overscans 60px
+above the viewport and the tear wanders around y=21 in its tile, so the edge
+sits ~40px above the top at rest. An earlier 16px moved the sheet without
+revealing anything. What the nudge uncovers above the tear is bare cream, since
+the nav does not begin until y=38, so it reads as a scored line appearing
+rather than a strip of page flashing.
 
-`ONCE_PER_SESSION` is currently **false**, so it plays on every load. Set it
-back to true when the timing is settled; with it on, a refresh keeps
-sessionStorage and the curtain only ever runs on the first visit.
+Pace: `SCORE_MS` 350ms plus `LAMBDA.part` 2.0 — **~3s end to end**. The sheet
+is dismissed at `q > 0.995`, so the travel is `-ln(0.005)/lambda` seconds, not
+the `4.6/lambda` that 99% would suggest.
 
 Details that matter if you change it:
 
-- **One curve, used twice.** The left half keeps what falls to its left of the
-  tear and the right half keeps what falls to its right — the *same* path. Two
-  mirrored paths would not interlock and would leave gaps along the cut.
-- **The tear tile sits at plain `50%`, not `50% - half-a-tile`.** A percentage
-  `mask-position` resolves as `(container - image) x percentage`, so 50%
-  already lands a 40px tile's left edge on `50% - 20px`. Subtracting the half
-  tile again pushed it a further 20px left and left a 20px column that neither
-  sheet covered: the page showed through the *closed* curtain in a slit down
-  the middle, which flashed at the start of every play. `mask-size`
-  percentages carry no such adjustment, which is why only the positions were
-  wrong.
-- **The tear tiles, it does not stretch.** A single path scaled to viewport
-  height would smear the roughness on a tall window and bunch it on a short
-  one. Tiling keeps the tear the same physical coarseness at every size.
-- **Thickness is a fixed mask offset, not a time lag.** Damping the back ply
-  more slowly seemed right and was wrong: the sheets travel a whole viewport
-  width, so a small difference in damping put ~90px between the two edges and
-  read as two separate sheets. Each layer is now masked a few pixels further
-  toward the cut than the one above it — 3px of yellow along the tear, then a
-  darker band beyond it.
+- **The tear tiles, it does not stretch.** A single path scaled to the viewport
+  would smear the roughness on a wide window and bunch it on a narrow one.
+- **Thickness is a fixed mask offset, not a time lag.** Each layer is masked a
+  few pixels higher than the one above it — 3px of yellow along the torn edge,
+  then a darker band beyond it. Damping the plies differently instead put ~90px
+  between the edges and read as two separate sheets.
+- **The shade under the torn edge stands in for the curl** of a lifted sheet.
+  It travels with the sheet, so it never appears in the resting design.
 - **Grain is a tiling background, never a live filter.** A `feTurbulence`
   filter on a full-viewport element that is also transforming would take the
   animation off the GPU.
-- **Cream sheets mean no flash.** The curtain is server-rendered and only
-  decided on the client, so on repeat visits there is a frame of sheet before
-  it is dismissed — invisible, because the sheet is the page's own colour.
+- **The sheet overscans on every side.** The top overscan keeps the torn edge
+  off-screen at rest so the page is fully covered before the nudge; the side
+  overscan stops the tilt swinging a corner into frame.
+- **Cream means no flash.** It is server-rendered and only then decided on the
+  client, so a skip shows a frame of sheet — invisible, because the sheet is
+  the page's own colour.
 - Skipped under `prefers-reduced-motion`, and the hero renders underneath it,
   so a JS failure leaves a usable page rather than a blank sheet.
 
+`ONCE_PER_SESSION` is **false**, so it plays on every load. Set it back to true
+when the timing is settled; with it on, a refresh keeps sessionStorage and the
+opening only ever runs on the first visit.
+
 The seen-flag is written when the animation *finishes*, not when it starts.
-Writing it up front looks equivalent and is not: React mounts twice in
-development, so the first mount would set it, its cleanup would cancel the
-animation, and the second mount would skip — the curtain would never run.
+React mounts twice in development, so writing it up front would let the first
+mount set it, its cleanup cancel the animation, and the second mount skip.
+
+### The curtain it replaced
+
+`app/PaperCurtain.tsx` is the earlier direction — two sheets parting along a
+torn seam — kept but **not mounted**. Halves meeting in the middle read as a
+stage curtain however the edge is drawn. Swap the import in `Hero.tsx` to
+compare them.
+
+Worth knowing if you revive it: its tear tile must sit at plain `50%`, not
+`50% - half-a-tile`. A percentage `mask-position` resolves as
+`(container - image) x percentage`, so 50% already lands a 40px tile's left
+edge on `50% - 20px`; subtracting the half tile again left a 20px column that
+neither sheet covered, and the page showed through the closed curtain in a slit
+down the middle.
 
 ## Autoplay
 
 The carousel advances every **2000ms** (`AUTOPLAY_MS`), starting only once the
-curtain has finished so the two never run at each other.
+opening has finished so the two never run at each other.
 
 Two numbers set the pace, and both matter. `AUTOPLAY_MS` is how often a slide
 changes; `LAMBDA.carousel` (10, so 99% settled in ~0.46s) is how fast each
