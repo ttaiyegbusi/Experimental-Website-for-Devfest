@@ -14,13 +14,13 @@ const ONCE_PER_SESSION = false;
 // The beat before the sheet goes: it shifts a few pixels, which brings the
 // torn edge and its yellow line just into frame, and only then peels. Without
 // it the sheet simply drops and the torn edge is never actually read.
-const SCORE_MS = 350;
+const SCORE_MS = 450;
 
 // Followers chasing a target, no durations — the same motion language as the
 // rest of the hero. The sheet is dismissed at q > 0.995, which takes
-// -ln(0.005)/lambda seconds, so part 2.0 gives ~2.65s of travel and, with the
-// hold, a three-second opening.
-const LAMBDA = { seam: 6, peek: 12, part: 2.0 };
+// -ln(0.005)/lambda seconds, so part 1.3 gives ~4.08s of travel and, with the
+// hold, an opening of about four and a half seconds.
+const LAMBDA = { seam: 4.5, peek: 9, part: 1.3 };
 
 const damp = (current: number, target: number, lambda: number, dt: number) =>
   current + (target - current) * (1 - Math.exp(-lambda * dt));

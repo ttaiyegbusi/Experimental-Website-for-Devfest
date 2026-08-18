@@ -21,9 +21,12 @@
   --peek: 0; /* the small nudge that exposes the scored edge */
   --seam: 0;
 
-  --tear-h: 40px; /* height of the tear tile */
-  --seam-w: 3px;
-  --ply-w: 7px;
+  --tear-w: 240px; /* period of the tear tile */
+  --tear-h: 40px; /* depth of the tear tile */
+  /* Both bands widened so the torn edge actually reads. At 3px and 7px the
+     tear was there but easy to miss against a full-viewport sheet. */
+  --seam-w: 5px;
+  --ply-w: 12px;
   /* The nudge has to be big enough to actually bring the torn edge into
      frame. The sheet overscans 60px above the viewport and the tear wanders
      around y=21 within its tile, so the edge sits ~40px above the top at rest;
@@ -31,14 +34,14 @@
      pixels inside the viewport, and what it uncovers above is bare cream —
      the nav does not start until y=38 — so the beat reads as a yellow scored
      line appearing, not as a strip of page flashing. */
-  --nudge: 50px;
+  --nudge: 56px;
   --travel: calc(100vh + 120px);
 
   /* A horizontal tear: the tile repeats along x and the sheet is opaque below
      the line. Same principle as the curtain's vertical tear — one drawn path,
      tiled rather than stretched, so its coarseness does not change with the
      viewport. */
-  --tear: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cpath d='M0,40 L0,21 C5,25 9,16 14,20 L16,18 C20,24 24,14 28,19 L31,22 C35,23 38,15 42,21 C47,25 51,16 56,20 L58,17 C62,24 66,15 70,19 C75,23 77,17 80,21 L80,40 Z' fill='%23fff'/%3E%3C/svg%3E");
+  --tear: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 40'%3E%3Cpath d='M0,40 L0,20 C6,12 11,27 16,19 L19,25 C25,9 30,29 36,17 L39,23 C44,15 49,26 54,20 L57,28 C63,11 68,30 74,18 L77,24 C82,13 87,28 92,21 L95,26 C101,10 106,27 112,19 L115,22 C120,16 125,25 130,20 L133,29 C139,12 144,31 150,18 L153,24 C158,14 163,27 168,20 L171,26 C177,9 182,28 188,19 L191,23 C196,15 201,26 206,21 L209,27 C215,11 220,29 226,18 L229,25 C234,14 238,23 240,20 L240,40 Z' fill='%23fff'/%3E%3C/svg%3E");
 
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
 
@@ -110,12 +113,12 @@
 .lift__sheet > * {
   -webkit-mask-image: var(--tear), linear-gradient(#000, #000);
   -webkit-mask-repeat: repeat-x, no-repeat;
-  -webkit-mask-size: 80px var(--tear-h), 100%
+  -webkit-mask-size: var(--tear-w) var(--tear-h), 100%
     calc(100% - var(--tear-h) + var(--shift, 0px));
   -webkit-mask-position: left calc(-1 * var(--shift, 0px)), left bottom;
   mask-image: var(--tear), linear-gradient(#000, #000);
   mask-repeat: repeat-x, no-repeat;
-  mask-size: 80px var(--tear-h), 100%
+  mask-size: var(--tear-w) var(--tear-h), 100%
     calc(100% - var(--tear-h) + var(--shift, 0px));
   mask-position: left calc(-1 * var(--shift, 0px)), left bottom;
   mask-composite: add;
