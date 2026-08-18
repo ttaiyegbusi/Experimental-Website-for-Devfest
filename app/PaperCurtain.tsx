@@ -7,13 +7,17 @@ const SEEN_KEY = "devfest:curtain-seen";
 
 // The score-then-tear beat. The seam appears first and the sheets hold still
 // for this long before parting — it is most of what separates "paper being
-// cut" from "two doors opening".
-const SCORE_MS = 120;
+// cut" from "two doors opening". Lengthened along with the parting so the
+// pause stays in proportion to the travel rather than becoming a hiccup.
+const SCORE_MS = 170;
 
 // Same motion language as the rest of the hero: followers chasing a target,
 // no durations. Thickness comes from a fixed mask offset in the CSS, not from
 // damping the two plies differently.
-const LAMBDA = { seam: 20, part: 7 };
+// part 5 = 99% open in ~0.92s; with the score hold the whole opening is a
+// little over a second. The seam is eased off 20 too, so the scored line does
+// not snap in ahead of a now-slower tear.
+const LAMBDA = { seam: 16, part: 5 };
 
 const damp = (current: number, target: number, lambda: number, dt: number) =>
   current + (target - current) * (1 - Math.exp(-lambda * dt));
