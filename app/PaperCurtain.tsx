@@ -1,5 +1,10 @@
 "use client";
 
+// NOT CURRENTLY MOUNTED. This was the first opening — two sheets parting along
+// a torn seam — replaced by PaperLift because halves meeting in the middle
+// read as a stage curtain however the edge is drawn. Kept so the two can be
+// compared; swap the import in Hero.tsx to bring it back.
+
 import { useCallback, useEffect, useRef } from "react";
 import "./PaperCurtain.css";
 

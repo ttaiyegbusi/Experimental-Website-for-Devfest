@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DevFestLogo } from "./DevFestLogo";
-import { PaperCurtain } from "./PaperCurtain";
+import { PaperLift } from "./PaperLift";
 import "./Hero.css";
 
 // The rotating half of the headline. "Ecosystem" leads because that is the
@@ -481,7 +481,7 @@ export function Hero() {
 
   return (
     <main className="page">
-      <PaperCurtain
+      <PaperLift
         onDone={() => {
           curtainDoneRef.current = true;
         }}

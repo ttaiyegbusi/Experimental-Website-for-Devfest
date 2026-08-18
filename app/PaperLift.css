@@ -1,0 +1,130 @@
+/* ============================================================================
+   Paper lift.
+
+   One sheet covering the page peels away downward, torn edge leading, tilting
+   as it goes so a corner leaves first. Replaces the earlier two-sheet curtain:
+   symmetry was the problem there — halves meeting in the middle read as a
+   stage curtain however the edge is drawn. A single sheet reads as
+   uncovering rather than opening.
+
+   It travels *down* rather than up so the page is revealed top-first: nav and
+   headline appear at the start of the animation rather than the end, which is
+   both the reading order and the better answer for perceived load, since the
+   headline is the largest element on the page.
+
+   Motion comes from --peek, --q and --seam, written each frame by PaperLift.
+   Nothing here transitions.
+   ========================================================================== */
+
+.lift {
+  --q: 0; /* 0 covering -> 1 clear of the page */
+  --peek: 0; /* the small nudge that exposes the scored edge */
+  --seam: 0;
+
+  --tear-h: 40px; /* height of the tear tile */
+  --seam-w: 3px;
+  --ply-w: 7px;
+  /* The nudge has to be big enough to actually bring the torn edge into
+     frame. The sheet overscans 60px above the viewport and the tear wanders
+     around y=21 within its tile, so the edge sits ~40px above the top at rest;
+     16px moved the sheet without revealing anything. 50px lands the tear a few
+     pixels inside the viewport, and what it uncovers above is bare cream —
+     the nav does not start until y=38 — so the beat reads as a yellow scored
+     line appearing, not as a strip of page flashing. */
+  --nudge: 50px;
+  --travel: calc(100vh + 120px);
+
+  /* A horizontal tear: the tile repeats along x and the sheet is opaque below
+     the line. Same principle as the curtain's vertical tear — one drawn path,
+     tiled rather than stretched, so its coarseness does not change with the
+     viewport. */
+  --tear: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 40'%3E%3Cpath d='M0,40 L0,21 C5,25 9,16 14,20 L16,18 C20,24 24,14 28,19 L31,22 C35,23 38,15 42,21 C47,25 51,16 56,20 L58,17 C62,24 66,15 70,19 C75,23 77,17 80,21 L80,40 Z' fill='%23fff'/%3E%3C/svg%3E");
+
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.lift[data-done="true"] {
+  display: none;
+}
+
+/* Overscanned on every side. The top overscan is what keeps the torn edge
+   just off-screen while the sheet is at rest, so the page is fully covered
+   before the score beat nudges the tear into view; the side overscan stops the
+   tilt from swinging a corner into frame. */
+.lift__sheet {
+  position: absolute;
+  top: -60px;
+  left: -15vw;
+  width: 130vw;
+  height: calc(100vh + 120px);
+  transform: translate3d(
+      0,
+      calc(var(--peek) * var(--nudge) + var(--q) * var(--travel)),
+      0
+    )
+    rotate(calc(var(--q) * 4deg));
+  transform-origin: 0% 0%;
+  will-change: transform;
+}
+
+.lift__ply,
+.lift__seam {
+  position: absolute;
+  inset: 0;
+}
+
+/* The gradient sits directly under the torn edge and stands in for the curl of
+   a sheet being lifted — the underside catching a little shade. It is gone
+   with the sheet, so it never appears in the resting design. */
+.lift__ply--front {
+  background-color: #fffaeb;
+  background-image: linear-gradient(
+      to bottom,
+      rgba(30, 24, 8, 0.08),
+      rgba(30, 24, 8, 0) 70px
+    ),
+    var(--grain);
+}
+
+.lift__ply--back {
+  background-color: #f3ecd8;
+  background-image: var(--grain);
+}
+
+.lift__seam {
+  background: #f6b51e;
+  opacity: var(--seam);
+}
+
+/* Tear tile across the top, solid below it. --shift lifts a layer's own edge
+   above its neighbours': the seam uses it so a few pixels of yellow survive
+   above the cream, the back ply so a darker band survives above that.
+   mask-position here is a plain length, so unlike the curtain's percentage
+   positioning there is no image-width adjustment to account for. */
+.lift__sheet > * {
+  -webkit-mask-image: var(--tear), linear-gradient(#000, #000);
+  -webkit-mask-repeat: repeat-x, no-repeat;
+  -webkit-mask-size: 80px var(--tear-h), 100%
+    calc(100% - var(--tear-h) + var(--shift, 0px));
+  -webkit-mask-position: left calc(-1 * var(--shift, 0px)), left bottom;
+  mask-image: var(--tear), linear-gradient(#000, #000);
+  mask-repeat: repeat-x, no-repeat;
+  mask-size: 80px var(--tear-h), 100%
+    calc(100% - var(--tear-h) + var(--shift, 0px));
+  mask-position: left calc(-1 * var(--shift, 0px)), left bottom;
+  mask-composite: add;
+}
+
+.lift__seam {
+  --shift: var(--seam-w);
+}
+
+.lift__ply--back {
+  --shift: var(--ply-w);
+}
