@@ -467,41 +467,9 @@
 
 /* ---- talks: topic pills ------------------------------------------------- */
 
-.topics {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: clamp(40px, 6vw, 72px) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
 /* The mock gives every pill its own colour. Held to yellow, white and black
    instead: the fill alternates so the rows still have rhythm, without adding
    ten hues to a page whose whole character is one accent. */
-.topics__pill {
-  padding: 12px 22px;
-  border: 1px solid var(--ink);
-  border-radius: 999px;
-  font-size: clamp(15px, 1.4vw, 19px);
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
-.topics__pill:nth-child(3n + 1) {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.topics__pill:nth-child(3n + 2) {
-  background: var(--ink);
-  color: #fff;
-}
-
-.topics__pill:nth-child(3n) {
-  background: #fff;
-}
-
 /* ---- experts: photo grid ------------------------------------------------ */
 
 .grid {
@@ -578,8 +546,22 @@
 
 /* ---- what to expect: grounds -------------------------------------------- */
 
+/* The pit fills whatever height is left after the heading, so the pills land
+   on the section's own floor. That needs the section to be a column with a
+   real height to divide up. */
 .sec--talks {
   --sec-bg: #fff;
+
+  display: flex;
+  flex-direction: column;
+  min-height: min(100vh, 900px);
+  overflow: hidden;
+}
+
+.sec--talks .sec__inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .sec--experts {
@@ -630,21 +612,6 @@
   .expect__body {
     max-width: none;
   }
-
-  /* Four columns of pills at this size would be one word each. Smaller pills
-     and a tighter gap keep two or three per row instead. */
-  .topics {
-    gap: 8px;
-  }
-
-  .topics__pill {
-    padding: 9px 15px;
-    font-size: 14px;
-  }
-
-  .grid {
-    gap: 6px;
-  }
 }
 
 /* Below this a 3-up grid of faces is about 100px per tile, which is too small
@@ -653,4 +620,36 @@
   .grid {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+/* ---- experts rail ------------------------------------------------------- */
+
+/* The section no longer caps its own height: the rail's runway does that, and
+   the sticky child inside it needs the section to be a plain block. */
+.sec--experts {
+  padding-bottom: 0;
+}
+
+.strip {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2vw, 28px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.strip__cell {
+  flex: none;
+  width: clamp(200px, 22vw, 300px);
+  aspect-ratio: 234 / 250;
+  overflow: hidden;
+  background: var(--grid-line);
+}
+
+.strip__cell .grid__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }

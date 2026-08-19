@@ -12,6 +12,8 @@ import {
   TALKS,
   TIERS,
 } from "./content";
+import { HScroll } from "./HScroll";
+import { TalksPit } from "./TalksPit";
 import "./Sections.css";
 
 /* Reveal on scroll. One observer per section rather than one per element: it
@@ -214,15 +216,11 @@ export function Talks() {
       <div className="sec__inner expect__inner">
         <ExpectHead s={TALKS} />
 
-        {/* Pills are sized by their own label, so the rows rag naturally and
-            the list can be edited without touching the layout. */}
-        <ul className="topics reveal-item">
-          {TALKS.topics.map((topic) => (
-            <li className="topics__pill" key={topic}>
-              {topic}
-            </li>
-          ))}
-        </ul>
+        {/* The pills are not laid out — they are dropped. Each is a real DOM
+            element that matter-js only ever hands a position and an angle, so
+            the text stays selectable and crisp, and they can be thrown around
+            once they land. */}
+        <TalksPit />
       </div>
     </section>
   );
@@ -232,17 +230,22 @@ export function Experts() {
   const ref = useReveal<HTMLElement>();
   const tiles = Array.from({ length: EXPERTS.count }, (_, i) => i + 1);
   return (
-    <section className="sec sec--experts expect expect--split" id="experts" ref={ref}>
-      <div className="sec__inner expect__inner">
+    <section className="sec sec--experts expect" id="experts" ref={ref}>
+      <div className="sec__inner">
         <ExpectHead s={EXPERTS} />
+      </div>
 
-        {/* Greyscale at rest, colour on hover — the same idea as the hero
-            montage, and it keeps the page to yellow, white and black until you
-            touch it. Decorative: the names are not listed, so alt is empty and
-            the grid is hidden from assistive tech. */}
-        <ul className="grid reveal-item" aria-hidden="true">
+      {/* The faces travel sideways while the page scrolls down, so this stretch
+          reads across rather than continuing to stack. The page keeps its own
+          scrollbar — see HScroll: nothing is hijacked.
+
+          Greyscale at rest, colour on hover — the same idea as the hero
+          montage. Decorative: the names are not listed, so alt is empty and
+          the strip is hidden from assistive tech. */}
+      <HScroll className="experts__rail">
+        <ul className="strip" aria-hidden="true">
           {tiles.map((n) => (
-            <li className="grid__cell" key={n}>
+            <li className="strip__cell" key={n}>
               <img
                 className="grid__img"
                 src={`/speakers/speaker-${String(n).padStart(2, "0")}.webp`}
@@ -256,7 +259,7 @@ export function Experts() {
             </li>
           ))}
         </ul>
-      </div>
+      </HScroll>
     </section>
   );
 }

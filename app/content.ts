@@ -116,26 +116,9 @@ export const TALKS = {
   label: "Talks",
   title: "Different talks from different industries.",
   body: "One track never fits a room this mixed. Sessions run across engineering, design, data and the business of building — so a backend engineer, a product designer and a founder can each spend the day somewhere useful.",
-  /* The topics GDG communities actually programme. Edit freely — the layout
-     reflows to whatever is in this list. */
-  topics: [
-    "UI Design",
-    "Motion Design",
-    "SaaS",
-    "Compliance",
-    "Product Management",
-    "Blockchain",
-    "Mobile Development",
-    "Machine Learning",
-    "Data Analysis",
-    "AI",
-    "Fintech",
-    "Cloud & DevOps",
-    "Cybersecurity",
-    "Product Design",
-    "Design Engineering",
-    "Engineering",
-  ],
+  /* Topics live in app/pills.ts, not here: the pit needs a fill and a text
+     colour per topic as well as the label, and two lists of the same topics
+     would drift apart. */
 };
 
 export const EXPERTS = {

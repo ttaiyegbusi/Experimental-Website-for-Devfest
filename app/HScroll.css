@@ -1,0 +1,47 @@
+/* ============================================================================
+   Horizontal travel driven by vertical scroll.
+
+   The runway's height is set in JS from the actual track width, so the
+   distance is never guessed. The sticky child pins for exactly that runway.
+   ========================================================================== */
+
+.hscroll {
+  position: relative;
+}
+
+.hscroll__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* The track must be exactly as wide as the viewport, with its contents
+   overflowing it — that overflow is the distance to travel. As a bare flex
+   item it sized to its own content instead, so scrollWidth equalled
+   clientWidth and the computed distance was zero. */
+.hscroll__track {
+  flex: 0 0 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2vw, 28px);
+  padding-inline: clamp(20px, 6vw, 104px);
+  will-change: transform;
+}
+
+/* Without JavaScript the track never gets a transform, so let it be a normal
+   horizontally scrollable strip rather than a clipped one. */
+@media (scripting: none) {
+  .hscroll {
+    height: auto !important;
+  }
+
+  .hscroll__sticky {
+    position: static;
+    height: auto;
+    overflow-x: auto;
+  }
+}
