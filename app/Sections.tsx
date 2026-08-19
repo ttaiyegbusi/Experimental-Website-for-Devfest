@@ -215,13 +215,17 @@ export function Talks() {
     <section className="sec sec--talks expect" id="talks" ref={ref}>
       <div className="sec__inner expect__inner">
         <ExpectHead s={TALKS} />
-
-        {/* The pills are not laid out — they are dropped. Each is a real DOM
-            element that matter-js only ever hands a position and an angle, so
-            the text stays selectable and crisp, and they can be thrown around
-            once they land. */}
-        <TalksPit />
       </div>
+
+      {/* The pit sits outside the 1000px column deliberately: the pile should
+          use the whole width of the window, not stack into a narrow strip with
+          empty margins either side of it.
+
+          The pills are not laid out — they are dropped. Each is a real DOM
+          element that matter-js only ever hands a position and an angle, so
+          the text stays selectable and crisp, and they can be thrown around
+          once they land. */}
+      <TalksPit />
     </section>
   );
 }

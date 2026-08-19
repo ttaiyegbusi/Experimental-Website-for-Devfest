@@ -558,9 +558,14 @@
   overflow: hidden;
 }
 
+/* The heading keeps the shared column; the pit does not. */
 .sec--talks .sec__inner {
-  display: flex;
-  flex-direction: column;
+  flex: none;
+}
+
+/* Full-bleed, so the pile spans the window rather than the text column. */
+.sec--talks .pit {
+  width: 100%;
   flex: 1;
 }
 

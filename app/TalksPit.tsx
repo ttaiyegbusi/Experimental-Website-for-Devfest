@@ -25,8 +25,6 @@ import "./TalksPit.css";
 
 /** Simulated pixels per second squared. */
 const GRAVITY = 1.25;
-/** Seconds between successive pills entering. */
-const DROP_INTERVAL = 0.11;
 /** Fixed physics step, ms. Fixed rather than frame-derived, or a slow frame
  *  lets a pill tunnel through the floor. */
 const STEP_MS = 1000 / 60;
@@ -106,16 +104,45 @@ export function TalksPit() {
 
     // One body per pill, sized from what the DOM actually measured, so the
     // physics outline matches the rendered pill exactly at any font size.
+    // Only take as many pills as the box can actually hold. A loose pile of
+    // rounded, rotated bodies settles at roughly half the area it covers, so
+    // budget 52%: past that the last few never find a resting place, and on a
+    // phone they hover above the top edge or get squeezed through a wall.
+    // Measured rather than a breakpoint, so it holds at any width and
+    // survives someone adding more pills to the list.
+    const budget = W * H * 0.52;
+    let used = 0;
+    let capacity = 0;
+    for (const el of pillRefs.current) {
+      if (!el) continue;
+      const area = el.offsetWidth * el.offsetHeight;
+      if (used + area > budget) break;
+      used += area;
+      capacity += 1;
+    }
+
     const bodies: Body[] = [];
     pillRefs.current.forEach((el, i) => {
       if (!el) return;
+      // The overflow stays in the DOM for the screen-reader list below, but
+      // takes no part in the pile.
+      if (i >= capacity) {
+        el.style.display = "none";
+        return;
+      }
       const w = el.offsetWidth;
       const h = el.offsetHeight;
       const body = Bodies.rectangle(
-        // Spread the entry points across the width, avoiding the very edges.
-        W * (0.18 + 0.64 * ((i + 0.5) / PILLS.length)),
+        // Spread the entry points across nearly the whole width. The old
+        // 18%-82% band left the outer fifths to be filled by bouncing alone,
+        // which on a wide window read as empty gutters.
+        W * (0.05 + 0.9 * ((i + 0.5) / capacity)),
         // Stagger above the top so they arrive in a cascade, not a curtain.
-        -h - i * (H * 0.55) * DROP_INTERVAL * 6,
+        // Spread over a fixed band rather than a per-pill offset: the old
+        // formula multiplied by the index, so going from 16 pills to 34 put
+        // the last one ~6000px up and it was still falling seconds later.
+        // This keeps the whole cascade the same length whatever the count.
+        -h - (i / capacity) * H * 2.2,
         w,
         h,
         {
@@ -305,7 +332,9 @@ export function TalksPit() {
         if (!simRef.current) return;
         teardown();
         pillRefs.current.forEach((el) => {
-          if (el) el.style.transform = "";
+          if (!el) return;
+          el.style.transform = "";
+          el.style.display = "";
         });
         void build();
       }, 250);
