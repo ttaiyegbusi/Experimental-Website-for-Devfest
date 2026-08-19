@@ -40,9 +40,10 @@ const DELETE_MS = 24;
 const QUESTION_HOLD_MS = 1900;
 const BETWEEN_MS = 320;
 
+// Every entry here must point at a section that exists. "Community Board" was
+// removed rather than left pointing at #community, which had no target.
 const NAV_LINKS = [
   { label: "About", href: "#about" },
-  { label: "Community Board", href: "#community" },
   { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
 ];
@@ -480,7 +481,7 @@ export function Hero() {
   }, [typingIdle]);
 
   return (
-    <main className="page">
+    <main className="page" id="top">
       <PaperLift
         onDone={() => {
           curtainDoneRef.current = true;
@@ -501,7 +502,7 @@ export function Hero() {
               </li>
             ))}
           </ul>
-          <a className="nav__ticket" href="#tickets">
+          <a className="nav__ticket" href="#pricing">
             Buy Ticket
           </a>
         </nav>
@@ -624,7 +625,7 @@ export function Hero() {
 
                         <a
                           className="reveal__card"
-                          href="#explore"
+                          href="#about"
                           onFocus={() => select(targetRef.current || KEYBOARD_DEFAULT)}
                           onBlur={() => select(0)}
                         >

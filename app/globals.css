@@ -1,5 +1,19 @@
 :root {
   color-scheme: light;
+
+  /* Palette lives here, not on .page, so the hero and the sections below it
+     draw from one source. Measured off the reference screenshot. */
+  --cream: #fffaeb;
+  --ink: #171717;
+  --accent: #f6b51e;
+  --grid-line: #e8e8e8;
+  --muted: #a3a3a3; /* placeholder text on the dark prompt field only */
+  /* Muted text on a light background needs to be far darker than --muted:
+     #a3a3a3 on cream is 2.4:1, which fails WCAG AA. This is 5.6:1. */
+  --muted-ink: #6b6551;
+  --body-ink: #5c5648;
+  /* Ink at low alpha, so one rule reads correctly on every section tint. */
+  --rule: rgba(23, 23, 23, 0.1);
 }
 
 * {
@@ -10,5 +24,21 @@ html,
 body {
   margin: 0;
   /* The cream runs to the edges of the viewport, not just behind the hero. */
-  background: #fffaeb;
+  background: var(--cream);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* The nav is not sticky, but anchor targets should still not land flush
+   against the top of the window. */
+[id] {
+  scroll-margin-top: 32px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

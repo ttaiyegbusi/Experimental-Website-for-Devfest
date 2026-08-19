@@ -1,0 +1,656 @@
+/* ============================================================================
+   Sections below the hero: About, Pricing, FAQ.
+
+   Same vocabulary as the hero and nothing new invented: cream page, #171717
+   ink, the yellow accent used sparingly, Faculty Glyphic for headings over
+   Geist for everything else, square corners, no shadows. Widths line up with
+   the hero's 1000px navigation so the whole page shares one column.
+   ========================================================================== */
+
+.sec {
+  --sec-w: min(1000px, calc(100vw - 40px));
+
+  padding-block: clamp(64px, 9vw, 128px);
+  color: var(--ink);
+  font-family: var(--font-sans), "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--sec-bg, var(--cream));
+}
+
+.sec--last {
+  padding-bottom: clamp(88px, 12vw, 176px);
+}
+
+.sec__inner {
+  width: var(--sec-w);
+  margin-inline: auto;
+}
+
+.sec__head {
+  margin-bottom: clamp(28px, 4vw, 48px);
+}
+
+.sec__label {
+  margin: 0 0 12px;
+  color: var(--sec-tone, var(--muted-ink));
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Sized well below the hero's 82.6px so the hero keeps the page's only really
+   loud voice. */
+.sec__title {
+  max-width: 18ch;
+  margin: 0;
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 4.4vw, 52px);
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.sec__body {
+  max-width: 62ch;
+  font-size: clamp(16px, 1.35vw, 19px);
+  line-height: 1.6;
+}
+
+.sec__body p {
+  margin: 0 0 1em;
+}
+
+.sec__meta {
+  color: var(--muted-ink);
+}
+
+.sec__note {
+  margin: clamp(24px, 3vw, 40px) 0 0;
+  color: var(--muted-ink);
+  font-size: 15px;
+}
+
+/* Any fact that has not been filled in yet. Deliberately conspicuous — the
+   point is that nobody mistakes a placeholder for a real date or price. */
+.tbd {
+  color: #8a7a4e;
+  text-decoration: underline dashed var(--accent);
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+/* ---- about: stats card -------------------------------------------------- */
+
+/* The white gridded panel is the same device as the card behind the speakers,
+   at the same 48px pitch. */
+.stats {
+  display: grid;
+  border: 1px solid var(--grid-line);
+  grid-template-columns: repeat(4, 1fr);
+  margin: clamp(36px, 5vw, 64px) 0 0;
+  padding: clamp(24px, 3vw, 40px);
+  background-color: #fff;
+  background-image: linear-gradient(
+      to right,
+      var(--grid-line) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.stats__item {
+  padding-inline: 8px;
+}
+
+.stats__label {
+  color: var(--muted-ink);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+.stats__value {
+  margin: 6px 0 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1.1;
+}
+
+/* ---- pricing ------------------------------------------------------------ */
+
+.tiers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* These cards are white whatever the section behind them is, so they carry
+   their own ink rather than inheriting --sec-fg. Without this the names,
+   prices and perks inherit white from the black Pricing section and vanish
+   into the card. */
+.tier,
+.stats {
+  color: var(--ink);
+}
+
+.tier {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(20px, 2.4vw, 30px);
+  background: #fff;
+  border: 1px solid var(--grid-line);
+}
+
+/* The accent earns its place by marking exactly one thing. */
+.tier--featured {
+  border-color: var(--ink);
+}
+
+.tier__flag {
+  align-self: flex-start;
+  margin: 0 0 12px;
+  padding: 4px 8px;
+  background: var(--accent);
+  color: var(--ink);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.tier__name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.tier__price {
+  margin: 8px 0 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(28px, 3.4vw, 42px);
+  line-height: 1.1;
+}
+
+.tier__summary {
+  margin: 10px 0 0;
+  color: var(--body-ink);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.tier__perks {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.tier__perks {
+  margin-bottom: 22px;
+}
+
+.tier__perks li {
+  padding: 8px 0 8px 18px;
+  border-top: 1px solid var(--grid-line);
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-position: 0 17px;
+  background-size: 8px 1px;
+}
+
+/* margin-top:auto pins the button to the bottom of the card, so tiers with
+   fewer perks still line their buttons up with the others. The spacing above
+   it comes from the perks list, not from padding here, which would just make
+   the dark button taller. */
+.tier__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  margin-top: auto;
+  padding: 0;
+  background: var(--ink);
+  color: #fff;
+  font-size: 15px;
+  text-decoration: none;
+  transition: opacity 120ms ease;
+}
+
+.tier__cta:hover {
+  opacity: 0.88;
+}
+
+.tier__cta:focus-visible,
+.faq__q:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- faq ---------------------------------------------------------------- */
+
+.faq {
+  border-top: 1px solid var(--rule);
+}
+
+.faq__item {
+  border-bottom: 1px solid var(--rule);
+}
+
+.faq__q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  cursor: pointer;
+  font-size: clamp(16px, 1.5vw, 20px);
+  list-style: none;
+}
+
+.faq__q::-webkit-details-marker {
+  display: none;
+}
+
+/* A plus that becomes a minus. Two bars, one rotated away when open. */
+.faq__mark {
+  position: relative;
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+
+.faq__mark::before,
+.faq__mark::after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 1.5px;
+  background: var(--ink);
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.faq__mark::after {
+  transform: rotate(90deg);
+}
+
+.faq__item[open] .faq__mark::after {
+  transform: rotate(0deg);
+}
+
+.faq__a {
+  max-width: 62ch;
+  padding: 0 0 22px;
+  color: var(--body-ink);
+  font-size: clamp(15px, 1.3vw, 17px);
+  line-height: 1.6;
+}
+
+.faq__a p {
+  margin: 0 0 0.8em;
+}
+
+.faq__a p:last-child {
+  margin-bottom: 0;
+}
+
+/* ---- responsive --------------------------------------------------------- */
+
+@media (max-width: 820px) {
+  .tiers {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 24px;
+  }
+}
+
+@media (max-width: 760px) {
+  .sec {
+    --sec-w: calc(100vw - 24px);
+  }
+
+  .stats__item {
+    padding-inline: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq__mark::before,
+  .faq__mark::after,
+  .tier__cta {
+    transition: none;
+  }
+}
+
+/* ---- section grounds ---------------------------------------------------- */
+
+/* Variation comes from value, not from hue: cream, white and black, with the
+   yellow doing accent duty throughout. An earlier pass tinted each section
+   with one of the four logo colours; three extra hues read as noise against a
+   design whose whole character is one accent on a warm neutral.
+
+   --sec-fg flips with the ground so the black section does not need its own
+   copy of every rule. */
+.sec {
+  color: var(--sec-fg, var(--ink));
+}
+
+.sec--about {
+  --sec-bg: #fff;
+}
+
+/* Inverted. The white tier cards gain a lot of presence against it, and it
+   breaks the page into three clear movements without introducing a colour. */
+.sec--pricing {
+  --sec-bg: var(--ink);
+  --sec-fg: #fff;
+  --sec-tone: var(--accent);
+}
+
+.sec--faq {
+  --sec-bg: var(--cream);
+}
+
+/* On black, ink-at-10% is invisible; on cream and white it is right. */
+.sec--pricing .faq,
+.sec--pricing .faq__item {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.sec--pricing .sec__note {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* ---- reveal on scroll --------------------------------------------------- */
+
+/* The section gets data-in from the observer and the children stagger off it,
+   so no element carries its own delay. Transform and opacity only, both
+   composited, and the travel is small — this is meant to feel like the page
+   settling, not like things flying in. */
+.reveal-item {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+  transition: opacity 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sec[data-in="true"] .reveal-item {
+  opacity: 1;
+  transform: none;
+}
+
+.sec[data-in="true"] .reveal-item:nth-child(2) {
+  transition-delay: 70ms;
+}
+.sec[data-in="true"] .reveal-item:nth-child(3) {
+  transition-delay: 140ms;
+}
+.sec[data-in="true"] .reveal-item:nth-child(4) {
+  transition-delay: 210ms;
+}
+.sec[data-in="true"] .reveal-item:nth-child(5) {
+  transition-delay: 280ms;
+}
+.sec[data-in="true"] .reveal-item:nth-child(6) {
+  transition-delay: 350ms;
+}
+
+/* Reduced motion: no travel, no fade, nothing to wait for. The observer is
+   skipped too, so this is the resting state rather than an animated one. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-item {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Without JavaScript the observer never runs, so nothing would ever be
+   revealed. Show everything instead of hiding the page. */
+@media (scripting: none) {
+  .reveal-item {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- what to expect: shared -------------------------------------------- */
+
+/* The mock sets these headings in the yellow display face at a size close to
+   the hero's. That works because they are one per screen and far apart; the
+   About/Pricing/FAQ headings stay ink so the page still has a hierarchy. */
+.expect__title {
+  max-width: 14ch;
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-size: clamp(38px, 6.2vw, 76px);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.expect__body {
+  max-width: 46ch;
+  margin: clamp(18px, 2.4vw, 28px) 0 0;
+  color: var(--body-ink);
+  font-size: clamp(16px, 1.35vw, 18px);
+  line-height: 1.6;
+}
+
+/* The split column is roughly 40% of the page, so the shared heading size
+   would break this one into five lines where the mock has three. Sized down
+   for the split variant only. */
+.expect--split .expect__title {
+  max-width: 12ch;
+  font-size: clamp(32px, 4.4vw, 58px);
+}
+
+/* Experts is the only one the mock lays out side by side: copy left, grid
+   right. The others run full width, because a pill cloud and a numbered list
+   both read better across the column than squeezed into half of it. */
+.expect--split .expect__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: clamp(32px, 5vw, 72px);
+}
+
+/* ---- talks: topic pills ------------------------------------------------- */
+
+.topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: clamp(40px, 6vw, 72px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The mock gives every pill its own colour. Held to yellow, white and black
+   instead: the fill alternates so the rows still have rhythm, without adding
+   ten hues to a page whose whole character is one accent. */
+.topics__pill {
+  padding: 12px 22px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  font-size: clamp(15px, 1.4vw, 19px);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.topics__pill:nth-child(3n + 1) {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.topics__pill:nth-child(3n + 2) {
+  background: var(--ink);
+  color: #fff;
+}
+
+.topics__pill:nth-child(3n) {
+  background: #fff;
+}
+
+/* ---- experts: photo grid ------------------------------------------------ */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grid__cell {
+  overflow: hidden;
+  background: var(--ink);
+  aspect-ratio: 234 / 250;
+}
+
+/* Greyscale at rest so the section reads in the page's three colours, colour
+   on hover — the same move the hero montage makes. */
+.grid__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.02);
+  transform: scale(1.001); /* avoids a hairline gap on fractional widths */
+  transition: filter 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.grid__cell:hover .grid__img {
+  filter: grayscale(0);
+  transform: scale(1.04);
+}
+
+/* ---- networking: numbered points ---------------------------------------- */
+
+.points {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(24px, 3vw, 48px);
+  margin: clamp(40px, 6vw, 72px) 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+
+.points__item {
+  padding-top: 20px;
+  border-top: 2px solid var(--ink);
+}
+
+.points__num {
+  display: block;
+  color: var(--accent);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.points__heading {
+  margin: 14px 0 0;
+  font-size: clamp(17px, 1.6vw, 21px);
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.points__copy {
+  margin: 10px 0 0;
+  color: var(--body-ink);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+/* ---- what to expect: grounds -------------------------------------------- */
+
+.sec--talks {
+  --sec-bg: #fff;
+}
+
+.sec--experts {
+  --sec-bg: var(--cream);
+}
+
+.sec--networking {
+  --sec-bg: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid__img {
+    transition: none;
+  }
+
+  .grid__cell:hover .grid__img {
+    transform: scale(1.001);
+  }
+}
+
+/* ---- what to expect: responsive ----------------------------------------- */
+
+@media (max-width: 900px) {
+  /* Copy above the grid rather than beside it — at this width the split
+     leaves the heading about 14 characters wide, which breaks every line. */
+  .expect--split .expect__inner {
+    grid-template-columns: 1fr;
+    gap: clamp(28px, 5vw, 44px);
+  }
+
+  .points {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .points__item {
+    padding: 18px 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .points__item:first-child {
+    border-top: 2px solid var(--ink);
+  }
+}
+
+@media (max-width: 760px) {
+  .expect__title,
+  .expect__body {
+    max-width: none;
+  }
+
+  /* Four columns of pills at this size would be one word each. Smaller pills
+     and a tighter gap keep two or three per row instead. */
+  .topics {
+    gap: 8px;
+  }
+
+  .topics__pill {
+    padding: 9px 15px;
+    font-size: 14px;
+  }
+
+  .grid {
+    gap: 6px;
+  }
+}
+
+/* Below this a 3-up grid of faces is about 100px per tile, which is too small
+   to read as a portrait. Two columns, six rows. */
+@media (max-width: 460px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

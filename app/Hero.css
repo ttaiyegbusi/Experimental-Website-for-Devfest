@@ -12,12 +12,6 @@
    ========================================================================== */
 
 .page {
-  --cream: #fffaeb;
-  --ink: #171717;
-  --accent: #f6b51e;
-  --grid-line: #e8e8e8;
-  --muted: #a3a3a3;
-
   /* Horizontal reference widths. Each is capped at its reference value and
      then allowed to shrink with the viewport, which is what keeps the
      composition from stretching on wide monitors. */
