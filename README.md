@@ -60,16 +60,17 @@ headline arrive at the start of the animation rather than the end. That is both
 reading order and the better answer for perceived load, since the headline is
 the largest element on the page.
 
-The beat is a **nudge, then peel**: the sheet shifts 50px, which brings the
+The beat is a **nudge, then peel**: the sheet shifts 56px, which brings the
 torn edge and its yellow line just into frame, and only then goes. `--nudge`
 has to be large enough to actually expose the edge — the sheet overscans 60px
 above the viewport and the tear wanders around y=21 in its tile, so the edge
 sits ~40px above the top at rest. An earlier 16px moved the sheet without
-revealing anything. What the nudge uncovers above the tear is bare cream, since
+revealing anything, and the deeper tear needed 56px. What the nudge uncovers
+above the tear is bare cream, since
 the nav does not begin until y=38, so it reads as a scored line appearing
 rather than a strip of page flashing.
 
-Pace: `SCORE_MS` 350ms plus `LAMBDA.part` 2.0 — **~3s end to end**. The sheet
+Pace: `SCORE_MS` 450ms plus `LAMBDA.part` 1.3 — **~4.5s end to end**. The sheet
 is dismissed at `q > 0.995`, so the travel is `-ln(0.005)/lambda` seconds, not
 the `4.6/lambda` that 99% would suggest.
 
@@ -77,9 +78,13 @@ Details that matter if you change it:
 
 - **The tear tiles, it does not stretch.** A single path scaled to the viewport
   would smear the roughness on a wide window and bunch it on a narrow one.
+- **Depth and period move together.** Deepening the tear to read better made
+  the old 80px tile obviously periodic — it looked like a decorative zigzag
+  border, because the eye finds the rhythm before it finds the shape. The tile
+  is 240px (`--tear-w`) with varied jags inside it.
 - **Thickness is a fixed mask offset, not a time lag.** Each layer is masked a
-  few pixels higher than the one above it — 3px of yellow along the torn edge,
-  then a darker band beyond it. Damping the plies differently instead put ~90px
+  few pixels higher than the one above it — 5px of yellow along the torn edge,
+  then a 12px darker band beyond it. Damping the plies differently instead put ~90px
   between the edges and read as two separate sheets.
 - **The shade under the torn edge stands in for the curl** of a lifted sheet.
   It travels with the sheet, so it never appears in the resting design.
@@ -172,6 +177,49 @@ Two bugs worth remembering, both found here:
 - The loop stops when settled, so nothing repositioned the slides on first
   paint or after a resize. One frame fixes both — hence the mount effect and
   the resize listener.
+
+## Responsive
+
+The composition holds its identity at every width — same order, same centre
+axis, montage always one picture — but the arrow strategy changes.
+
+| Width | Slide | Arrows |
+|---|---|---|
+| ≥ 1140px | 900px (capped) | outside, in the gutters |
+| 820–1140px | `100vw - 240px` | outside, in the gutters |
+| ≤ 820px | `100vw - 32px` | below the montage, centred pair |
+| ≤ 760px | `100vw - 24px` | below the montage, 36px |
+
+**Why the arrows move.** Keeping them outside costs 240px of gutter. That is
+fine on a laptop and absurd on a phone: at 375px it left the carousel **135px
+wide and the montage 68px tall** — the speakers were smaller than the body
+text. Below 820px the slide takes the full width and the arrows sit on its
+edges instead — and then **below** the montage as a centred pair, because on a
+full-width slide the outermost speakers sit right at the edges, so an overlaid
+arrow lands on someone's face. `--lede-gap` opens to 74px there to make room;
+`.stageband` clips horizontally only, so the buttons are free to hang below it.
+Swipe is the primary gesture at that size anyway; the arrows stay for
+discoverability.
+
+**The headline size is derived, not picked.** The widest line the rotating
+headline can hold is "One Community," which in Faculty Glyphic measures about
+7.9× the font size. The previous `clamp(34px, 11.6vw, 60px)` produced 343px of
+text inside 343px of space — it fitted with *nothing* to spare, clipped on any
+phone narrower than 375px, and clipped transiently while the word's width
+animates. It is now `clamp(28px, calc((100vw - 48px) / 8.6), 56px)`, which
+leaves a real margin. **Adding a longer word to `WORDS` means revisiting that
+divisor.**
+
+Media queries run widest to narrowest. That ordering is load-bearing: they all
+set variables on `.page` at equal specificity, so a broader query placed later
+silently overrides a narrower one.
+
+Verified at 320, 375, 768, 900 and 1440: no horizontal scroll at any width, the
+arrows stay inside the viewport, the widest headline line fits its column, and
+the paper lift still seals the page before it plays (186 sample points at
+375px, none uncovered). The peek slides do sit outside the viewport by design —
+`.stageband` clips them with `overflow-x: clip`, which is why they never
+produce a scrollbar.
 
 ## The hover reveal
 
